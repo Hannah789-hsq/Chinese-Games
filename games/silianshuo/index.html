@@ -1,0 +1,1800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>爱莲说互动学习游戏</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.5/dist/purify.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#5D5CDE',
+                        lotus: '#E8BBCA',
+                        chrysanthemum: '#F9D923',
+                        peony: '#EB5353',
+                        paper: '#F9F5EB',
+                        ink: '#1E293B',
+                        'dark-paper': '#1E1E1E',
+                        'dark-ink': '#F1F5F9'
+                    },
+                    fontFamily: {
+                        'sans': ['Arial', 'sans-serif'],
+                        'serif': ['"Times New Roman"', 'serif'],
+                        'kai': ['"KaiTi"', '"楷体"', 'serif']
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @font-face {
+            font-family: 'LXGW WenKai';
+            src: url('https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.1.0/style/LXGW-WenKai-Regular.woff2') format('woff2');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        html {
+            font-family: 'LXGW WenKai', system-ui, -apple-system, sans-serif;
+        }
+
+        /* 古风纸张效果 */
+        .paper-bg {
+            background-color: var(--paper-color);
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .dark .paper-bg {
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+
+        /* 拖拽项目 */
+        .draggable {
+            cursor: grab;
+            touch-action: none;
+            user-select: none;
+        }
+
+        .dragging {
+            opacity: 0.8;
+            cursor: grabbing;
+        }
+
+        .dropzone {
+            min-height: 100px;
+            border: 2px dashed #ccc;
+            transition: all 0.3s ease;
+        }
+
+        .dropzone.active {
+            border-color: #5D5CDE;
+            background-color: rgba(93, 92, 222, 0.1);
+        }
+
+        .flower {
+            transition: transform 0.3s ease;
+        }
+        
+        .flower:hover {
+            transform: scale(1.05);
+        }
+
+        .lotus-pond {
+            background: linear-gradient(180deg, #E0F7FA 0%, #B2EBF2 100%);
+        }
+
+        .dark .lotus-pond {
+            background: linear-gradient(180deg, #0D47A1 0%, #01579B 100%);
+        }
+
+        /* 古诗词文本样式 */
+        .ancient-text {
+            line-height: 2;
+            letter-spacing: 1px;
+        }
+
+        /* 奖励闪光效果 */
+        @keyframes gleam {
+            0% { box-shadow: 0 0 10px gold; }
+            50% { box-shadow: 0 0 20px gold, 0 0 30px gold; }
+            100% { box-shadow: 0 0 10px gold; }
+        }
+
+        .reward {
+            animation: gleam 2s infinite;
+        }
+
+        /* 古风滑块样式 */
+        input[type="range"] {
+            height: 25px;
+            -webkit-appearance: none;
+            margin: 10px 0;
+            width: 100%;
+            background: transparent;
+        }
+        
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 10px;
+            background: #E6E6E6;
+            border-radius: 5px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #5D5CDE;
+            -webkit-appearance: none;
+            margin-top: -5px;
+        }
+        
+        .dark input[type="range"]::-webkit-slider-runnable-track {
+            background: #4a5568;
+        }
+        
+        .dark input[type="range"]::-webkit-slider-thumb {
+            background: #805AD5;
+        }
+
+        /* 设置CSS变量用于主题色切换 */
+        :root {
+            --paper-color: #F9F5EB;
+            --ink-color: #1E293B;
+        }
+
+        .dark {
+            --paper-color: #1E1E1E;
+            --ink-color: #F1F5F9;
+        }
+
+        /* 花朵SVG动画 */
+        .flower-bloom {
+            transform-origin: center;
+            transition: transform 1s ease;
+        }
+        
+        .flower-bloom:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+    </style>
+</head>
+<body class="bg-paper dark:bg-dark-paper text-ink dark:text-dark-ink transition-colors duration-300">
+    <div class="min-h-screen flex flex-col">
+        <!-- 顶部导航 -->
+        <header class="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm py-4">
+            <div class="container mx-auto px-4 flex justify-between items-center">
+                <h1 class="text-2xl md:text-3xl font-semibold text-primary">《爱莲说》互动学习游戏</h1>
+                <div class="flex items-center gap-4">
+                    <button id="help-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 hidden dark:block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 block dark:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 游戏主体容器 -->
+        <main class="flex-grow container mx-auto px-4 py-6">
+            <!-- 进度指示器 -->
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-lg font-semibold">进度</h2>
+                    <span id="progress-text" class="text-sm text-gray-600 dark:text-gray-400">第一幕：百花鉴心</span>
+                </div>
+                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                    <div id="progress-bar" class="bg-primary h-2.5 rounded-full" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- 游戏舞台区域 -->
+            <div id="game-stage" class="paper-bg rounded-lg shadow-md p-6 mb-8">
+                <!-- 默认显示欢迎界面 -->
+                <div id="welcome-screen" class="flex flex-col items-center text-center">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-4">《爱莲说》互动学习之旅</h2>
+                    <p class="mb-6 text-lg">通过三重试炼，探索莲、菊、牡丹背后的君子之道</p>
+                    <div class="flex justify-center gap-4 mb-8">
+                        <div class="flower-icon flower-bloom">
+                            <svg width="80" height="80" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="30" fill="#E8BBCA" />
+                                <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(0, 50, 50)" />
+                                <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(72, 50, 50)" />
+                                <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(144, 50, 50)" />
+                                <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(216, 50, 50)" />
+                                <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(288, 50, 50)" />
+                                <circle cx="50" cy="50" r="10" fill="#FFD700" />
+                            </svg>
+                            <p class="mt-2 font-bold text-lotus">莲</p>
+                        </div>
+                        <div class="flower-icon flower-bloom">
+                            <svg width="80" height="80" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="15" fill="#F9D923" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(0, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(30, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(60, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(90, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(120, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(150, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(180, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(210, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(240, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(270, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(300, 50, 50)" />
+                                <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(330, 50, 50)" />
+                            </svg>
+                            <p class="mt-2 font-bold text-chrysanthemum">菊</p>
+                        </div>
+                        <div class="flower-icon flower-bloom">
+                            <svg width="80" height="80" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="20" fill="#EB5353" />
+                                <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(0, 50, 50)" />
+                                <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(60, 50, 50)" />
+                                <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(120, 50, 50)" />
+                                <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(180, 50, 50)" />
+                                <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(240, 50, 50)" />
+                                <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(300, 50, 50)" />
+                            </svg>
+                            <p class="mt-2 font-bold text-peony">牡丹</p>
+                        </div>
+                    </div>
+                    <button id="start-btn" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105">
+                        开始试炼之旅
+                    </button>
+                </div>
+
+                <!-- 第一幕：百花鉴心 (初始隐藏) -->
+                <div id="stage1-screen" class="hidden">
+                    <h2 class="text-2xl font-bold mb-6 text-center">第一幕：百花鉴心</h2>
+                    
+                    <!-- 花魂召唤阵 -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4">花魂召唤阵</h3>
+                        <p class="mb-4">请将每种花拖动到对应的品格词云池中</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                            <!-- 花卉图标区 -->
+                            <div class="flex justify-center items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div id="flower-container" class="flex flex-wrap justify-center gap-4">
+                                    <div id="lotus" class="draggable flower" data-flower="lotus">
+                                        <svg width="80" height="80" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="30" fill="#E8BBCA" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(0, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(72, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(144, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(216, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(288, 50, 50)" />
+                                            <circle cx="50" cy="50" r="10" fill="#FFD700" />
+                                        </svg>
+                                        <p class="mt-2 text-center font-bold text-lotus">莲</p>
+                                    </div>
+                                    
+                                    <div id="chrysanthemum" class="draggable flower" data-flower="chrysanthemum">
+                                        <svg width="80" height="80" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="15" fill="#F9D923" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(0, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(30, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(60, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(90, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(120, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(150, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(180, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(210, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(240, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(270, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(300, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(330, 50, 50)" />
+                                        </svg>
+                                        <p class="mt-2 text-center font-bold text-chrysanthemum">菊</p>
+                                    </div>
+                                    
+                                    <div id="peony" class="draggable flower" data-flower="peony">
+                                        <svg width="80" height="80" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="20" fill="#EB5353" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(0, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(60, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(120, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(180, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(240, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(300, 50, 50)" />
+                                        </svg>
+                                        <p class="mt-2 text-center font-bold text-peony">牡丹</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 词云池区域 -->
+                            <div id="recluse-pool" class="dropzone rounded-lg p-4 flex flex-col items-center" data-target="chrysanthemum">
+                                <h4 class="text-lg font-semibold mb-2">隐逸者</h4>
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded-md">安闲</span>
+                                    <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded-md">隐居</span>
+                                    <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded-md">淡泊</span>
+                                    <span class="bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded-md">超凡</span>
+                                </div>
+                                <div class="drop-result mt-4 hidden"></div>
+                            </div>
+                            
+                            <div id="noble-pool" class="dropzone rounded-lg p-4 flex flex-col items-center" data-target="lotus">
+                                <h4 class="text-lg font-semibold mb-2">君子者</h4>
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 px-2 py-1 rounded-md">清正</span>
+                                    <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 px-2 py-1 rounded-md">高洁</span>
+                                    <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 px-2 py-1 rounded-md">廉洁</span>
+                                    <span class="bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 px-2 py-1 rounded-md">坚守</span>
+                                </div>
+                                <div class="drop-result mt-4 hidden"></div>
+                            </div>
+                            
+                            <div id="wealthy-pool" class="dropzone rounded-lg p-4 flex flex-col items-center" data-target="peony">
+                                <h4 class="text-lg font-semibold mb-2">富贵者</h4>
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    <span class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 px-2 py-1 rounded-md">奢华</span>
+                                    <span class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 px-2 py-1 rounded-md">繁盛</span>
+                                    <span class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 px-2 py-1 rounded-md">富丽</span>
+                                    <span class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 px-2 py-1 rounded-md">炫耀</span>
+                                </div>
+                                <div class="drop-result mt-4 hidden"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 时空花语簿 -->
+                    <div id="flower-comparison" class="hidden mb-8">
+                        <h3 class="text-xl font-semibold mb-4">时空花语簿</h3>
+                        <p class="mb-4">请阅读对比文本，点击表示差异的关键词</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                                <h4 class="text-lg font-semibold mb-2 text-lotus">《爱莲说》</h4>
+                                <div id="lotus-text" class="ancient-text text-base leading-relaxed">
+                                    水陆草木之花，可爱者甚蕃。晋陶渊明独爱菊。自李唐来，世人甚爱牡丹。予独爱莲之出淤泥而不染，濯清涟而不妖，中通外直，不蔓不枝，香远益清，亭亭净植，可远观而不可亵玩焉。
+                                    予谓菊，花之隐逸者也；牡丹，花之富贵者也；莲，花之<span class="highlight-word cursor-pointer px-1 bg-yellow-100 dark:bg-yellow-800 rounded-md">君子</span>者也。
+                                    噫！菊之爱，陶后鲜有闻。莲之爱，同予者何人？牡丹之爱，宜乎众矣！
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                                <h4 class="text-lg font-semibold mb-2 text-chrysanthemum">《饮酒·其五》</h4>
+                                <div id="chrysanthemum-text" class="ancient-text text-base leading-relaxed">
+                                    结庐在人境，而无车马喧。
+                                    问君何能尔？心远地自偏。
+                                    采菊东篱下，悠然见南山。
+                                    山气日夕佳，飞鸟相与还。
+                                    此中有真意，欲辨已忘言。
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="comparison-insight" class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hidden">
+                            <h4 class="text-lg font-semibold mb-2">周敦颐的心声</h4>
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0">
+                                    <img src="https://i.imgur.com/XJzXRgC.png" alt="周敦颐像" class="w-20 h-20 rounded-full object-cover">
+                                </div>
+                                <div>
+                                    <p class="italic">"陶渊明采菊东篱，象征隐逸；世人争相赏牡丹，追求富贵；而我独爱莲花，以其象征君子品格。菊之高雅已少有人知，莲之品格更是少有人赏识，唯有牡丹之艳受众人追捧，可见世风日下啊！"</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第一幕结束按钮 -->
+                    <div class="flex justify-center mt-8">
+                        <button id="stage1-complete-btn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hidden">
+                            完成第一幕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 第二幕：濂溪试炼 (初始隐藏) -->
+                <div id="stage2-screen" class="hidden">
+                    <h2 class="text-2xl font-bold mb-6 text-center">第二幕：濂溪试炼</h2>
+                    
+                    <!-- 生字莲台 -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4">生字莲台</h3>
+                        <p class="mb-4">请点击下面的生字，学习其读音与意义</p>
+                        
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="蕃" data-pinyin="fán" data-meaning="繁多；众多">
+                                <span class="text-4xl font-bold">蕃</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">fán</span>
+                                <p class="meaning text-sm mt-2 hidden">繁多；众多</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="濯" data-pinyin="zhuó" data-meaning="洗涤；洗净">
+                                <span class="text-4xl font-bold">濯</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">zhuó</span>
+                                <p class="meaning text-sm mt-2 hidden">洗涤；洗净</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="妖" data-pinyin="yāo" data-meaning="妖艳；妖媚">
+                                <span class="text-4xl font-bold">妖</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">yāo</span>
+                                <p class="meaning text-sm mt-2 hidden">妖艳；妖媚</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="蔓" data-pinyin="màn" data-meaning="蔓延；攀缘的藤">
+                                <span class="text-4xl font-bold">蔓</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">màn</span>
+                                <p class="meaning text-sm mt-2 hidden">蔓延；攀缘的藤</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="亵" data-pinyin="xiè" data-meaning="亵渎；轻慢">
+                                <span class="text-4xl font-bold">亵</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">xiè</span>
+                                <p class="meaning text-sm mt-2 hidden">亵渎；轻慢</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="玩" data-pinyin="wán" data-meaning="玩弄；把玩">
+                                <span class="text-4xl font-bold">玩</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">wán</span>
+                                <p class="meaning text-sm mt-2 hidden">玩弄；把玩</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="涟" data-pinyin="lián" data-meaning="水波；涟漪">
+                                <span class="text-4xl font-bold">涟</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">lián</span>
+                                <p class="meaning text-sm mt-2 hidden">水波；涟漪</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="植" data-pinyin="zhí" data-meaning="栽植；种植">
+                                <span class="text-4xl font-bold">植</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">zhí</span>
+                                <p class="meaning text-sm mt-2 hidden">栽植；种植</p>
+                            </div>
+                            <div class="character-card bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-all duration-300 flex flex-col items-center" data-char="鲜" data-pinyin="xiǎn" data-meaning="少；稀少">
+                                <span class="text-4xl font-bold">鲜</span>
+                                <span class="pinyin text-sm text-gray-500 dark:text-gray-400 mt-2 hidden">xiǎn</span>
+                                <p class="meaning text-sm mt-2 hidden">少；稀少</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 文脉清浊辨 -->
+                    <div id="text-sorting" class="hidden mb-8">
+                        <h3 class="text-xl font-semibold mb-4">文脉清浊辨</h3>
+                        <p class="mb-4">请将文本片段拖拽到右侧水池中正确排序</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div id="muddy-pool" class="bg-gray-200 dark:bg-gray-700 p-4 rounded-lg min-h-[200px]">
+                                <h4 class="text-lg font-semibold mb-2">浊水池</h4>
+                                <div class="fragments-container">
+                                    <div class="text-fragment draggable p-2 bg-white dark:bg-gray-800 rounded-md mb-2 cursor-move" data-order="3">
+                                        中通外直，不蔓不枝，香远益清，亭亭净植
+                                    </div>
+                                    <div class="text-fragment draggable p-2 bg-white dark:bg-gray-800 rounded-md mb-2 cursor-move" data-order="1">
+                                        水陆草木之花，可爱者甚蕃
+                                    </div>
+                                    <div class="text-fragment draggable p-2 bg-white dark:bg-gray-800 rounded-md mb-2 cursor-move" data-order="4">
+                                        可远观而不可亵玩焉
+                                    </div>
+                                    <div class="text-fragment draggable p-2 bg-white dark:bg-gray-800 rounded-md mb-2 cursor-move" data-order="2">
+                                        予独爱莲之出淤泥而不染，濯清涟而不妖
+                                    </div>
+                                    <div class="text-fragment draggable p-2 bg-white dark:bg-gray-800 rounded-md mb-2 cursor-move" data-order="5">
+                                        莲，花之君子者也
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="clear-pool" class="lotus-pond p-4 rounded-lg min-h-[200px]">
+                                <h4 class="text-lg font-semibold mb-2">清水池</h4>
+                                <div id="sorted-container" class="min-h-[150px] border-2 border-dashed border-white/30 rounded-md p-2">
+                                    <!-- 正确排序的文本将被放置在这里 -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="sorting-result" class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hidden">
+                            <h4 class="text-lg font-semibold mb-2">文章结构分析</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <h5 class="font-semibold">莲花特性</h5>
+                                    <ul class="list-disc list-inside">
+                                        <li>出淤泥而不染 - 环境不能污染其品质</li>
+                                        <li>濯清涟而不妖 - 清洗后不显妖艳</li>
+                                        <li>中通外直 - 内外一致，表里如一</li>
+                                        <li>不蔓不枝 - 不攀附，不虚长</li>
+                                        <li>香远益清 - 香气越远越清幽</li>
+                                        <li>亭亭净植 - 一尘不染，亭亭玉立</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <h5 class="font-semibold">象征意义</h5>
+                                    <ul class="list-disc list-inside">
+                                        <li>对腐败环境的抵抗 - 不同流合污</li>
+                                        <li>不追求外表华丽 - 朴素有内涵</li>
+                                        <li>君子人格的完整性 - 格调高尚</li>
+                                        <li>不攀附权贵 - 自持与正直</li>
+                                        <li>令人敬重的品格 - 德行远扬</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第二幕结束按钮 -->
+                    <div class="flex justify-center mt-8">
+                        <button id="stage2-complete-btn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hidden">
+                            完成第二幕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 第三幕：君子之道 (初始隐藏) -->
+                <div id="stage3-screen" class="hidden">
+                    <h2 class="text-2xl font-bold mb-6 text-center">第三幕：君子之道</h2>
+                    
+                    <!-- 言志花笺 -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4">言志花笺</h3>
+                        <p class="mb-4">请选择喜爱的植物和品格词，创作一篇托物言志的短文</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                                <h4 class="text-lg font-semibold mb-4">选择要赞美的植物</h4>
+                                <div class="flex justify-center space-x-4">
+                                    <div class="plant-option cursor-pointer text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-plant="lotus">
+                                        <svg width="60" height="60" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="30" fill="#E8BBCA" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(0, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(72, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(144, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(216, 50, 50)" />
+                                            <path d="M50,20 Q60,35 50,50 Q40,35 50,20 Z" fill="#E8BBCA" transform="rotate(288, 50, 50)" />
+                                            <circle cx="50" cy="50" r="10" fill="#FFD700" />
+                                        </svg>
+                                        <p class="mt-2">莲</p>
+                                    </div>
+                                    <div class="plant-option cursor-pointer text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-plant="chrysanthemum">
+                                        <svg width="60" height="60" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="15" fill="#F9D923" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(0, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(30, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(60, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(90, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(120, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(150, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(180, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(210, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(240, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(270, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(300, 50, 50)" />
+                                            <path d="M50,20 Q65,40 50,50 Q35,40 50,20 Z" fill="#F9D923" transform="rotate(330, 50, 50)" />
+                                        </svg>
+                                        <p class="mt-2">菊</p>
+                                    </div>
+                                    <div class="plant-option cursor-pointer text-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" data-plant="peony">
+                                        <svg width="60" height="60" viewBox="0 0 100 100">
+                                            <circle cx="50" cy="50" r="20" fill="#EB5353" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(0, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(60, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(120, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(180, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(240, 50, 50)" />
+                                            <path d="M50,15 Q70,35 50,55 Q30,35 50,15 Z" fill="#EB5353" transform="rotate(300, 50, 50)" />
+                                        </svg>
+                                        <p class="mt-2">牡丹</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-6">
+                                    <h4 class="text-lg font-semibold mb-4">选择相关品格词</h4>
+                                    <div id="virtue-words" class="flex flex-wrap gap-2">
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800" data-virtue="清正">清正</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800" data-virtue="高洁">高洁</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 rounded-full hover:bg-purple-200 dark:hover:bg-purple-800" data-virtue="刚正">刚正</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-800" data-virtue="淡泊">淡泊</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 rounded-full hover:bg-yellow-200 dark:hover:bg-yellow-800" data-virtue="隐逸">隐逸</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded-full hover:bg-red-200 dark:hover:bg-red-800" data-virtue="富贵">富贵</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 rounded-full hover:bg-red-200 dark:hover:bg-red-800" data-virtue="华丽">华丽</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800" data-virtue="坚韧">坚韧</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 rounded-full hover:bg-blue-200 dark:hover:bg-blue-800" data-virtue="谦逊">谦逊</span>
+                                        <span class="virtue-tag cursor-pointer px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100 rounded-full hover:bg-green-200 dark:hover:bg-green-800" data-virtue="沉稳">沉稳</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                                <h4 class="text-lg font-semibold mb-2">创作托物言志短文</h4>
+                                <div class="mb-4">
+                                    <label for="essay-title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">标题</label>
+                                    <input type="text" id="essay-title" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base" placeholder="为你的短文起一个标题">
+                                </div>
+                                <div>
+                                    <label for="essay-content" class="block text-sm font-medium text-gray-700 dark:text-gray-300">正文</label>
+                                    <textarea id="essay-content" rows="6" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base resize-none" placeholder="请创作一篇托物言志的短文，将你选择的植物与品格相结合..."></textarea>
+                                </div>
+                                <div class="mt-4 flex justify-end">
+                                    <button id="generate-essay-btn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-4 rounded-md">生成短文</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="essay-feedback" class="mt-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hidden">
+                            <h4 class="text-lg font-semibold mb-2">作品点评</h4>
+                            <p id="feedback-content" class="text-gray-700 dark:text-gray-300"></p>
+                        </div>
+                    </div>
+                    
+                    <!-- 心镜映莲 -->
+                    <div id="character-mirror" class="mb-8 hidden">
+                        <h3 class="text-xl font-semibold mb-4">心镜映莲</h3>
+                        <p class="mb-4">拖动下方滑块，调整你心目中君子品格的各项特质</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-1">
+                                        <span>出世</span>
+                                        <span>入世</span>
+                                    </div>
+                                    <input type="range" id="slider-worldly" min="0" max="100" value="50" class="w-full">
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-1">
+                                        <span>淡泊</span>
+                                        <span>热烈</span>
+                                    </div>
+                                    <input type="range" id="slider-passion" min="0" max="100" value="30" class="w-full">
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-1">
+                                        <span>清高</span>
+                                        <span>亲和</span>
+                                    </div>
+                                    <input type="range" id="slider-friendly" min="0" max="100" value="40" class="w-full">
+                                </div>
+                                
+                                <div class="mb-6">
+                                    <div class="flex justify-between mb-1">
+                                        <span>刚直</span>
+                                        <span>柔和</span>
+                                    </div>
+                                    <input type="range" id="slider-flexible" min="0" max="100" value="60" class="w-full">
+                                </div>
+                                
+                                <div>
+                                    <div class="flex justify-between mb-1">
+                                        <span>隐藏</span>
+                                        <span>展现</span>
+                                    </div>
+                                    <input type="range" id="slider-display" min="0" max="100" value="50" class="w-full">
+                                </div>
+                            </div>
+                            
+                            <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md">
+                                <h4 class="text-lg font-semibold mb-4 text-center">你的君子莲花</h4>
+                                <div id="lotus-mirror" class="flex justify-center">
+                                    <!-- 动态生成的莲花将显示在这里 -->
+                                    <svg id="dynamic-lotus" width="200" height="200" viewBox="0 0 200 200">
+                                        <!-- 基础莲花形状，会根据滑块动态变化 -->
+                                        <circle cx="100" cy="100" r="20" fill="#E8BBCA" />
+                                        <!-- 花瓣会根据属性动态生成 -->
+                                    </svg>
+                                </div>
+                                <div id="character-analysis" class="mt-4 text-center">
+                                    <p class="text-gray-700 dark:text-gray-300">调整滑块以查看你心目中的君子品格</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 第三幕结束按钮 -->
+                    <div class="flex justify-center mt-8">
+                        <button id="stage3-complete-btn" class="bg-primary hover:bg-primary/90 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 hidden">
+                            完成第三幕
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 游戏完成界面 (初始隐藏) -->
+                <div id="completion-screen" class="hidden text-center">
+                    <h2 class="text-2xl md:text-3xl font-bold mb-6">恭喜！你已完成《爱莲说》学习之旅</h2>
+                    
+                    <div class="flex justify-center mb-8">
+                        <div class="reward rounded-full p-1 inline-block">
+                            <svg width="200" height="200" viewBox="0 0 200 200">
+                                <circle cx="100" cy="100" r="90" fill="none" stroke="gold" stroke-width="2" />
+                                <circle cx="100" cy="100" r="85" fill="none" stroke="gold" stroke-width="1" />
+                                
+                                <!-- 君子玉璧 -->
+                                <g id="jade-disc">
+                                    <circle cx="100" cy="100" r="70" fill="#7bc5ae" fill-opacity="0.6" />
+                                    <circle cx="100" cy="100" r="50" fill="#7bc5ae" fill-opacity="0.3" />
+                                    <circle cx="100" cy="100" r="25" fill="#7bc5ae" fill-opacity="0.1" />
+                                    
+                                    <!-- 文字在玉璧上环绕 -->
+                                    <path id="circular-text-path" d="M 100, 40 A 60 60 0 1 1 99.99 40" fill="none" />
+                                    <text>
+                                        <textPath href="#circular-text-path" startOffset="0%" text-anchor="middle" dominant-baseline="middle" fill="#1a3a1a" font-size="14" font-weight="bold">
+                                            清正 · 高洁 · 出淤泥而不染 · 濯清涟而不妖 · 君子
+                                        </textPath>
+                                    </text>
+                                    
+                                    <!-- 中央莲花图案 -->
+                                    <g transform="translate(100, 100) scale(0.5)">
+                                        <circle cx="0" cy="0" r="30" fill="#E8BBCA" />
+                                        <path d="M0,-30 Q10,-15 0,0 Q-10,-15 0,-30 Z" fill="#E8BBCA" transform="rotate(0)" />
+                                        <path d="M0,-30 Q10,-15 0,0 Q-10,-15 0,-30 Z" fill="#E8BBCA" transform="rotate(72)" />
+                                        <path d="M0,-30 Q10,-15 0,0 Q-10,-15 0,-30 Z" fill="#E8BBCA" transform="rotate(144)" />
+                                        <path d="M0,-30 Q10,-15 0,0 Q-10,-15 0,-30 Z" fill="#E8BBCA" transform="rotate(216)" />
+                                        <path d="M0,-30 Q10,-15 0,0 Q-10,-15 0,-30 Z" fill="#E8BBCA" transform="rotate(288)" />
+                                        <circle cx="0" cy="0" r="10" fill="#FFD700" />
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                    
+                    <div class="max-w-2xl mx-auto mb-6">
+                        <h3 class="text-xl font-semibold mb-4">你已获得「君子认证」</h3>
+                        <p class="mb-4">你已通过三重试炼，理解了《爱莲说》所传达的君子品格。正如莲花出淤泥而不染，希望你在日常生活中也能保持高洁品格。</p>
+                        
+                        <div id="learning-summary" class="text-left mt-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+                            <h4 class="font-semibold mb-2">学习小结</h4>
+                            <ul class="list-disc pl-5 space-y-2">
+                                <li>了解《爱莲说》中莲、菊、牡丹三种花卉的象征意义</li>
+                                <li>掌握文章重点字词的读音和含义</li>
+                                <li>理解莲花所象征的君子品格特质</li>
+                                <li>体会周敦颐托物言志的写作手法</li>
+                                <li>反思并塑造自己心目中的君子形象</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <button id="restart-btn" class="bg-primary hover:bg-primary/90 text-white font-bold py-3 px-8 rounded-lg text-lg transition-all duration-300">
+                        重新开始
+                    </button>
+                </div>
+            </div>
+
+            <!-- 帮助与提示区域 -->
+            <div id="help-panel" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold">游戏指南</h3>
+                        <button id="close-help-btn" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold mb-2">《爱莲说》简介</h4>
+                        <p class="mb-4">《爱莲说》是北宋思想家周敦颐所作的一篇散文，表达了作者对莲花的喜爱以及对君子品格的推崇。通过比较莲花、菊花和牡丹三种花卉的特点，表达了作者追求高尚品格的精神追求。</p>
+                        
+                        <h4 class="font-semibold mb-2">游戏目标</h4>
+                        <p class="mb-4">通过三个关卡了解《爱莲说》的内容和寓意，体会周敦颐通过莲花表达的君子品格。</p>
+                        
+                        <h4 class="font-semibold mb-2">游戏操作指南</h4>
+                        <ul class="list-disc pl-5 mb-4 space-y-1">
+                            <li>第一幕：拖动花朵图标到对应的品格词池，完成植物象征对比</li>
+                            <li>第二幕：点击生字学习读音和含义，拖拽文本片段到正确位置</li>
+                            <li>第三幕：选择植物与品格词创作短文，调整滑块映射个人价值观</li>
+                        </ul>
+                        
+                        <h4 class="font-semibold mb-2">原文赏析</h4>
+                        <p class="mb-4 ancient-text">
+                            水陆草木之花，可爱者甚蕃。晋陶渊明独爱菊。自李唐来，世人甚爱牡丹。予独爱莲之出淤泥而不染，濯清涟而不妖，中通外直，不蔓不枝，香远益清，亭亭净植，可远观而不可亵玩焉。<br>
+                            予谓菊，花之隐逸者也；牡丹，花之富贵者也；莲，花之君子者也。<br>
+                            噫！菊之爱，陶后鲜有闻。莲之爱，同予者何人？牡丹之爱，宜乎众矣！
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // 检测暗色模式
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.classList.add('dark');
+        }
+        
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+            if (event.matches) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+        
+        // 游戏状态管理
+        const gameState = {
+            currentStage: 0, // 0:欢迎页, 1:第一幕, 2:第二幕, 3:第三幕, 4:完成页
+            stage1Progress: {
+                matchedFlowers: [], // 已匹配的花朵
+                comparisonCompleted: false // 是否完成对比阅读
+            },
+            stage2Progress: {
+                learnedCharacters: [], // 已学习的生字
+                sortingCompleted: false // 是否完成文本排序
+            },
+            stage3Progress: {
+                selectedPlant: '', // 选择的植物
+                selectedVirtues: [], // 选择的品格词
+                essayCompleted: false, // 是否完成短文创作
+                mirrorCompleted: false // 是否完成品格映射
+            },
+            // 奖励与解锁状态
+            rewards: {
+                jadeDisc: false,
+                calligraphy: false,
+                certificate: false
+            }
+        };
+        
+        // DOM元素
+        const screens = {
+            welcome: document.getElementById('welcome-screen'),
+            stage1: document.getElementById('stage1-screen'),
+            stage2: document.getElementById('stage2-screen'),
+            stage3: document.getElementById('stage3-screen'),
+            completion: document.getElementById('completion-screen')
+        };
+        
+        const progressElements = {
+            bar: document.getElementById('progress-bar'),
+            text: document.getElementById('progress-text')
+        };
+        
+        // 辅助函数：更新进度条
+        function updateProgress() {
+            let progressPercent = 0;
+            
+            switch(gameState.currentStage) {
+                case 0: // 欢迎界面
+                    progressPercent = 0;
+                    progressElements.text.textContent = "开始您的学习之旅";
+                    break;
+                case 1: // 第一幕
+                    const stage1Count = gameState.stage1Progress.matchedFlowers.length * 25 + (gameState.stage1Progress.comparisonCompleted ? 25 : 0);
+                    progressPercent = Math.min(25, stage1Count / 4 * 25);
+                    progressElements.text.textContent = "第一幕：百花鉴心";
+                    break;
+                case 2: // 第二幕
+                    const stage2Count = gameState.stage2Progress.learnedCharacters.length / 9 * 12.5 + (gameState.stage2Progress.sortingCompleted ? 12.5 : 0);
+                    progressPercent = 25 + Math.min(25, stage2Count);
+                    progressElements.text.textContent = "第二幕：濂溪试炼";
+                    break;
+                case 3: // 第三幕
+                    let stage3Count = 0;
+                    if (gameState.stage3Progress.selectedPlant !== '') stage3Count += 6.25;
+                    if (gameState.stage3Progress.selectedVirtues.length > 0) stage3Count += 6.25;
+                    if (gameState.stage3Progress.essayCompleted) stage3Count += 6.25;
+                    if (gameState.stage3Progress.mirrorCompleted) stage3Count += 6.25;
+                    progressPercent = 50 + Math.min(25, stage3Count);
+                    progressElements.text.textContent = "第三幕：君子之道";
+                    break;
+                case 4: // 完成界面
+                    progressPercent = 100;
+                    progressElements.text.textContent = "学习完成";
+                    break;
+            }
+            
+            progressElements.bar.style.width = `${progressPercent}%`;
+            
+            // 检查阶段完成情况，显示完成按钮
+            checkStageCompletion();
+        }
+        
+        // 辅助函数：检查当前阶段完成情况
+        function checkStageCompletion() {
+            // 第一幕完成检查
+            const stage1CompleteBtn = document.getElementById('stage1-complete-btn');
+            if (gameState.stage1Progress.matchedFlowers.length === 3 && gameState.stage1Progress.comparisonCompleted) {
+                stage1CompleteBtn.classList.remove('hidden');
+            } else {
+                stage1CompleteBtn.classList.add('hidden');
+            }
+            
+            // 第二幕完成检查
+            const stage2CompleteBtn = document.getElementById('stage2-complete-btn');
+            if (gameState.stage2Progress.learnedCharacters.length >= 5 && gameState.stage2Progress.sortingCompleted) {
+                stage2CompleteBtn.classList.remove('hidden');
+            } else {
+                stage2CompleteBtn.classList.add('hidden');
+            }
+            
+            // 第三幕完成检查
+            const stage3CompleteBtn = document.getElementById('stage3-complete-btn');
+            if (gameState.stage3Progress.essayCompleted && gameState.stage3Progress.mirrorCompleted) {
+                stage3CompleteBtn.classList.remove('hidden');
+            } else {
+                stage3CompleteBtn.classList.add('hidden');
+            }
+        }
+        
+        // 辅助函数：切换屏幕
+        function switchScreen(screenKey) {
+            // 隐藏所有屏幕
+            Object.values(screens).forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            
+            // 显示目标屏幕
+            screens[screenKey].classList.remove('hidden');
+            
+            // 更新游戏状态
+            switch(screenKey) {
+                case 'welcome':
+                    gameState.currentStage = 0;
+                    break;
+                case 'stage1':
+                    gameState.currentStage = 1;
+                    break;
+                case 'stage2':
+                    gameState.currentStage = 2;
+                    break;
+                case 'stage3':
+                    gameState.currentStage = 3;
+                    break;
+                case 'completion':
+                    gameState.currentStage = 4;
+                    // 解锁所有奖励
+                    gameState.rewards.jadeDisc = true;
+                    gameState.rewards.calligraphy = true;
+                    gameState.rewards.certificate = true;
+                    break;
+            }
+            
+            // 更新进度
+            updateProgress();
+        }
+
+        // 初始化游戏
+        function initGame() {
+            // 注册主要按钮事件
+            document.getElementById('start-btn').addEventListener('click', () => {
+                switchScreen('stage1');
+                setupStage1();
+            });
+            
+            document.getElementById('stage1-complete-btn').addEventListener('click', () => {
+                switchScreen('stage2');
+                setupStage2();
+            });
+            
+            document.getElementById('stage2-complete-btn').addEventListener('click', () => {
+                switchScreen('stage3');
+                setupStage3();
+            });
+            
+            document.getElementById('stage3-complete-btn').addEventListener('click', () => {
+                switchScreen('completion');
+            });
+            
+            document.getElementById('restart-btn').addEventListener('click', () => {
+                // 重置游戏状态
+                resetGameState();
+                switchScreen('welcome');
+            });
+            
+            // 主题切换按钮
+            document.getElementById('theme-toggle').addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+            
+            // 帮助面板交互
+            document.getElementById('help-btn').addEventListener('click', () => {
+                document.getElementById('help-panel').classList.remove('hidden');
+            });
+            
+            document.getElementById('close-help-btn').addEventListener('click', () => {
+                document.getElementById('help-panel').classList.add('hidden');
+            });
+            
+            // 初始显示欢迎界面
+            switchScreen('welcome');
+        }
+        
+        // 重置游戏状态
+        function resetGameState() {
+            gameState.currentStage = 0;
+            gameState.stage1Progress = {
+                matchedFlowers: [],
+                comparisonCompleted: false
+            };
+            gameState.stage2Progress = {
+                learnedCharacters: [],
+                sortingCompleted: false
+            };
+            gameState.stage3Progress = {
+                selectedPlant: '',
+                selectedVirtues: [],
+                essayCompleted: false,
+                mirrorCompleted: false
+            };
+            gameState.rewards = {
+                jadeDisc: false,
+                calligraphy: false,
+                certificate: false
+            };
+            
+            // 重置UI状态
+            resetStage1UI();
+            resetStage2UI();
+            resetStage3UI();
+        }
+        
+        // 第一幕：百花鉴心
+        function setupStage1() {
+            // 设置拖放功能
+            const draggables = document.querySelectorAll('.draggable');
+            const dropzones = document.querySelectorAll('.dropzone');
+            
+            draggables.forEach(draggable => {
+                draggable.addEventListener('mousedown', dragStart);
+                draggable.addEventListener('touchstart', dragStart, {passive: true});
+            });
+            
+            function dragStart(e) {
+                const target = e.target.closest('.draggable');
+                if (!target) return;
+                
+                // 添加拖动中的样式
+                target.classList.add('dragging');
+                
+                // 触摸事件处理
+                if (e.type === 'touchstart') {
+                    const touch = e.touches[0];
+                    const offsetX = touch.clientX - target.getBoundingClientRect().left;
+                    const offsetY = touch.clientY - target.getBoundingClientRect().top;
+                    
+                    document.addEventListener('touchmove', touchMove, {passive: false});
+                    document.addEventListener('touchend', touchEnd);
+                    
+                    function touchMove(e) {
+                        e.preventDefault(); // 防止滚动
+                        const touch = e.touches[0];
+                        
+                        // 移动元素
+                        target.style.position = 'fixed';
+                        target.style.zIndex = 1000;
+                        target.style.left = touch.clientX - offsetX + 'px';
+                        target.style.top = touch.clientY - offsetY + 'px';
+                        
+                        // 检查是否悬停在投放区上
+                        checkDropzone(touch.clientX, touch.clientY);
+                    }
+                    
+                    function touchEnd(e) {
+                        document.removeEventListener('touchmove', touchMove);
+                        document.removeEventListener('touchend', touchEnd);
+                        
+                        // 移除拖动样式
+                        target.classList.remove('dragging');
+                        
+                        const touch = e.changedTouches[0];
+                        handleDrop(touch.clientX, touch.clientY, target);
+                    }
+                } else {
+                    // 鼠标事件处理
+                    const offsetX = e.clientX - target.getBoundingClientRect().left;
+                    const offsetY = e.clientY - target.getBoundingClientRect().top;
+                    
+                    document.addEventListener('mousemove', mouseMove);
+                    document.addEventListener('mouseup', mouseUp);
+                    
+                    function mouseMove(e) {
+                        // 移动元素
+                        target.style.position = 'fixed';
+                        target.style.zIndex = 1000;
+                        target.style.left = e.clientX - offsetX + 'px';
+                        target.style.top = e.clientY - offsetY + 'px';
+                        
+                        // 检查是否悬停在投放区上
+                        checkDropzone(e.clientX, e.clientY);
+                    }
+                    
+                    function mouseUp(e) {
+                        document.removeEventListener('mousemove', mouseMove);
+                        document.removeEventListener('mouseup', mouseUp);
+                        
+                        // 移除拖动样式
+                        target.classList.remove('dragging');
+                        
+                        handleDrop(e.clientX, e.clientY, target);
+                    }
+                }
+            }
+            
+            // 检查鼠标/触摸点是否在投放区上
+            function checkDropzone(x, y) {
+                // 移除所有dropzone的active类
+                dropzones.forEach(zone => {
+                    zone.classList.remove('active');
+                });
+                
+                // 检查当前位置是否在某个dropzone上
+                dropzones.forEach(zone => {
+                    const rect = zone.getBoundingClientRect();
+                    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                        zone.classList.add('active');
+                    }
+                });
+            }
+            
+            // 处理拖放
+            function handleDrop(x, y, draggable) {
+                // 恢复元素原始位置
+                draggable.style.position = '';
+                draggable.style.zIndex = '';
+                draggable.style.left = '';
+                draggable.style.top = '';
+                
+                // 查找当前位置所在的dropzone
+                let targetZone = null;
+                dropzones.forEach(zone => {
+                    const rect = zone.getBoundingClientRect();
+                    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+                        targetZone = zone;
+                    }
+                    zone.classList.remove('active');
+                });
+                
+                // 如果找到目标区域，执行放置逻辑
+                if (targetZone) {
+                    const flowerType = draggable.dataset.flower;
+                    const targetType = targetZone.dataset.target;
+                    
+                    // 检查是否匹配正确
+                    if (flowerType === targetType) {
+                        // 正确匹配
+                        const resultDiv = targetZone.querySelector('.drop-result');
+                        resultDiv.innerHTML = '';
+                        resultDiv.appendChild(draggable.cloneNode(true));
+                        resultDiv.classList.remove('hidden');
+                        
+                        // 更新状态
+                        if (!gameState.stage1Progress.matchedFlowers.includes(flowerType)) {
+                            gameState.stage1Progress.matchedFlowers.push(flowerType);
+                            
+                            // 检查是否所有花都匹配完成
+                            if (gameState.stage1Progress.matchedFlowers.length === 3) {
+                                // 显示第二部分
+                                document.getElementById('flower-comparison').classList.remove('hidden');
+                            }
+                            
+                            // 更新进度
+                            updateProgress();
+                        }
+                    } else {
+                        // 匹配错误，添加抖动动画提示
+                        draggable.classList.add('shake');
+                        setTimeout(() => {
+                            draggable.classList.remove('shake');
+                        }, 500);
+                    }
+                }
+                
+                // 将拖拽元素放回原处
+                document.getElementById('flower-container').appendChild(draggable);
+            }
+            
+            // 关键词高亮点击事件
+            document.querySelectorAll('.highlight-word').forEach(word => {
+                word.addEventListener('click', () => {
+                    // 显示解析
+                    document.getElementById('comparison-insight').classList.remove('hidden');
+                    
+                    // 更新状态
+                    gameState.stage1Progress.comparisonCompleted = true;
+                    updateProgress();
+                });
+            });
+        }
+        
+        // 重置第一幕UI
+        function resetStage1UI() {
+            // 隐藏花语比较和洞察区域
+            document.getElementById('flower-comparison').classList.add('hidden');
+            document.getElementById('comparison-insight').classList.add('hidden');
+            
+            // 清空已匹配区域
+            document.querySelectorAll('.drop-result').forEach(result => {
+                result.classList.add('hidden');
+                result.innerHTML = '';
+            });
+            
+            // 确保所有花朵都在原始容器中
+            const flowerContainer = document.getElementById('flower-container');
+            ['lotus', 'chrysanthemum', 'peony'].forEach(id => {
+                const flower = document.getElementById(id);
+                if (flower) {
+                    flowerContainer.appendChild(flower);
+                }
+            });
+        }
+        
+        // 第二幕：濂溪试炼
+        function setupStage2() {
+            // 生字莲台交互
+            const characterCards = document.querySelectorAll('.character-card');
+            
+            characterCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const char = card.dataset.char;
+                    const pinyin = card.querySelector('.pinyin');
+                    const meaning = card.querySelector('.meaning');
+                    
+                    // 显示/隐藏读音和释义
+                    pinyin.classList.toggle('hidden');
+                    meaning.classList.toggle('hidden');
+                    
+                    // 如果是首次点击，则记录为已学习
+                    if (!gameState.stage2Progress.learnedCharacters.includes(char)) {
+                        gameState.stage2Progress.learnedCharacters.push(char);
+                        
+                        // 添加一个简单的动画效果
+                        card.classList.add('scale-105');
+                        setTimeout(() => {
+                            card.classList.remove('scale-105');
+                        }, 300);
+                        
+                        // 检查是否学习了足够多的字
+                        if (gameState.stage2Progress.learnedCharacters.length >= 5) {
+                            // 显示文本排序活动
+                            document.getElementById('text-sorting').classList.remove('hidden');
+                        }
+                        
+                        // 更新进度
+                        updateProgress();
+                    }
+                });
+            });
+            
+            // 文脉清浊辨交互
+            setupTextSorting();
+        }
+        
+        // 设置文本排序功能
+        function setupTextSorting() {
+            const textFragments = document.querySelectorAll('.text-fragment');
+            const muddyPool = document.getElementById('muddy-pool');
+            const sortedContainer = document.getElementById('sorted-container');
+            
+            // 设置拖拽功能
+            textFragments.forEach(fragment => {
+                fragment.addEventListener('mousedown', dragStart);
+                fragment.addEventListener('touchstart', dragStart, {passive: true});
+            });
+            
+            function dragStart(e) {
+                const target = e.target.closest('.text-fragment');
+                if (!target) return;
+                
+                // 添加拖动中的样式
+                target.classList.add('dragging');
+                
+                // 触摸事件处理
+                if (e.type === 'touchstart') {
+                    const touch = e.touches[0];
+                    const offsetX = touch.clientX - target.getBoundingClientRect().left;
+                    const offsetY = touch.clientY - target.getBoundingClientRect().top;
+                    
+                    document.addEventListener('touchmove', touchMove, {passive: false});
+                    document.addEventListener('touchend', touchEnd);
+                    
+                    function touchMove(e) {
+                        e.preventDefault(); // 防止滚动
+                        const touch = e.touches[0];
+                        
+                        // 移动元素
+                        target.style.position = 'fixed';
+                        target.style.zIndex = 1000;
+                        target.style.left = touch.clientX - offsetX + 'px';
+                        target.style.top = touch.clientY - offsetY + 'px';
+                    }
+                    
+                    function touchEnd(e) {
+                        document.removeEventListener('touchmove', touchMove);
+                        document.removeEventListener('touchend', touchEnd);
+                        
+                        // 移除拖动样式
+                        target.classList.remove('dragging');
+                        
+                        const touch = e.changedTouches[0];
+                        handleTextDrop(touch.clientX, touch.clientY, target);
+                    }
+                } else {
+                    // 鼠标事件处理
+                    const offsetX = e.clientX - target.getBoundingClientRect().left;
+                    const offsetY = e.clientY - target.getBoundingClientRect().top;
+                    
+                    document.addEventListener('mousemove', mouseMove);
+                    document.addEventListener('mouseup', mouseUp);
+                    
+                    function mouseMove(e) {
+                        // 移动元素
+                        target.style.position = 'fixed';
+                        target.style.zIndex = 1000;
+                        target.style.left = e.clientX - offsetX + 'px';
+                        target.style.top = e.clientY - offsetY + 'px';
+                    }
+                    
+                    function mouseUp(e) {
+                        document.removeEventListener('mousemove', mouseMove);
+                        document.removeEventListener('mouseup', mouseUp);
+                        
+                        // 移除拖动样式
+                        target.classList.remove('dragging');
+                        
+                        handleTextDrop(e.clientX, e.clientY, target);
+                    }
+                }
+            }
+            
+            // 处理文本片段放置
+            function handleTextDrop(x, y, fragment) {
+                // 恢复元素原始位置
+                fragment.style.position = '';
+                fragment.style.zIndex = '';
+                fragment.style.left = '';
+                fragment.style.top = '';
+                
+                // 检查是否放置在清水池内
+                const clearPoolRect = document.getElementById('clear-pool').getBoundingClientRect();
+                
+                if (
+                    x >= clearPoolRect.left && 
+                    x <= clearPoolRect.right && 
+                    y >= clearPoolRect.top && 
+                    y <= clearPoolRect.bottom
+                ) {
+                    // 放入排序容器
+                    sortedContainer.appendChild(fragment);
+                    
+                    // 检查排序是否正确
+                    checkSorting();
+                } else {
+                    // 返回浊水池
+                    muddyPool.querySelector('.fragments-container').appendChild(fragment);
+                }
+            }
+            
+            // 检查排序是否正确
+            function checkSorting() {
+                // 获取当前排序容器中的所有片段
+                const sortedFragments = sortedContainer.querySelectorAll('.text-fragment');
+                
+                // 如果数量不足，直接返回
+                if (sortedFragments.length < 5) return;
+                
+                // 检查顺序是否正确
+                let isCorrect = true;
+                let expectedOrder = 1;
+                
+                sortedFragments.forEach(fragment => {
+                    const fragmentOrder = parseInt(fragment.dataset.order);
+                    if (fragmentOrder !== expectedOrder) {
+                        isCorrect = false;
+                    }
+                    expectedOrder++;
+                });
+                
+                // 如果排序正确
+                if (isCorrect) {
+                    // 显示分析结果
+                    document.getElementById('sorting-result').classList.remove('hidden');
+                    
+                    // 更新状态
+                    gameState.stage2Progress.sortingCompleted = true;
+                    updateProgress();
+                    
+                    // 禁用拖拽
+                    sortedFragments.forEach(fragment => {
+                        fragment.classList.remove('draggable');
+                        fragment.classList.add('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-100');
+                    });
+                }
+            }
+        }
+        
+        // 重置第二幕UI
+        function resetStage2UI() {
+            // 重置生字卡片
+            document.querySelectorAll('.character-card').forEach(card => {
+                const pinyin = card.querySelector('.pinyin');
+                const meaning = card.querySelector('.meaning');
+                pinyin.classList.add('hidden');
+                meaning.classList.add('hidden');
+            });
+            
+            // 隐藏文本排序区域和结果
+            document.getElementById('text-sorting').classList.add('hidden');
+            document.getElementById('sorting-result').classList.add('hidden');
+            
+            // 重置文本排序
+            const muddyPool = document.getElementById('muddy-pool').querySelector('.fragments-container');
+            const sortedContainer = document.getElementById('sorted-container');
+            const fragments = document.querySelectorAll('.text-fragment');
+            
+            // 将所有文本片段移回浊水池
+            fragments.forEach(fragment => {
+                muddyPool.appendChild(fragment);
+                fragment.classList.add('draggable');
+                fragment.classList.remove('bg-green-100', 'dark:bg-green-900', 'text-green-800', 'dark:text-green-100');
+            });
+            
+            // 清空已排序容器
+            sortedContainer.innerHTML = '';
+        }
+        
+        // 第三幕：君子之道
+        function setupStage3() {
+            // 言志花笺交互
+            const plantOptions = document.querySelectorAll('.plant-option');
+            const virtueTags = document.querySelectorAll('.virtue-tag');
+            const generateEssayBtn = document.getElementById('generate-essay-btn');
+            
+            // 植物选择
+            plantOptions.forEach(option => {
+                option.addEventListener('click', () => {
+                    // 移除所有选中样式
+                    plantOptions.forEach(p => p.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'ring-2', 'ring-primary'));
+                    
+                    // 添加选中样式
+                    option.classList.add('bg-gray-100', 'dark:bg-gray-700', 'ring-2', 'ring-primary');
+                    
+                    // 更新状态
+                    gameState.stage3Progress.selectedPlant = option.dataset.plant;
+                });
+            });
+            
+            // 品格词选择
+            virtueTags.forEach(tag => {
+                tag.addEventListener('click', () => {
+                    // 切换选中状态
+                    if (tag.classList.contains('ring-2')) {
+                        // 取消选中
+                        tag.classList.remove('ring-2', 'ring-primary');
+                        
+                        // 从已选数组中移除
+                        const index = gameState.stage3Progress.selectedVirtues.indexOf(tag.dataset.virtue);
+                        if (index > -1) {
+                            gameState.stage3Progress.selectedVirtues.splice(index, 1);
+                        }
+                    } else {
+                        // 选中
+                        tag.classList.add('ring-2', 'ring-primary');
+                        
+                        // 添加到已选数组
+                        if (!gameState.stage3Progress.selectedVirtues.includes(tag.dataset.virtue)) {
+                            gameState.stage3Progress.selectedVirtues.push(tag.dataset.virtue);
+                        }
+                    }
+                });
+            });
+            
+            // 生成短文按钮
+            generateEssayBtn.addEventListener('click', generateEssay);
+            
+            // 显示心镜映莲模块
+            document.getElementById('character-mirror').classList.remove('hidden');
+            
+            // 设置滑块交互
+            setupCharacterMirror();
+        }
+        
+        // 生成托物言志短文
+        function generateEssay() {
+            const titleInput = document.getElementById('essay-title');
+            const contentInput = document.getElementById('essay-content');
+            const feedbackDiv = document.getElementById('essay-feedback');
+            const feedbackContent = document.getElementById('feedback-content');
+            
+            // 检查输入
+            if (!gameState.stage3Progress.selectedPlant) {
+                feedbackDiv.classList.remove('hidden');
+                feedbackContent.textContent = "请先选择一种植物。";
+                return;
+            }
+            
+            if (gameState.stage3Progress.selectedVirtues.length === 0) {
+                feedbackDiv.classList.remove('hidden');
+                feedbackContent.textContent = "请至少选择一个品格词。";
+                return;
+            }
+            
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            
+            if (!title || !content) {
+                feedbackDiv.classList.remove('hidden');
+                feedbackContent.textContent = "请输入标题和正文。";
+                return;
+            }
+            
+            // 简单评估文本内容
+            let feedback = "";
+            let score = 0;
+            
+            // 检查文章长度
+            if (content.length < 50) {
+                feedback += "文章内容较短，建议进一步丰富。";
+                score += 20;
+            } else if (content.length >= 50 && content.length < 100) {
+                feedback += "文章长度适中，内容表达较为清晰。";
+                score += 30;
+            } else {
+                feedback += "文章篇幅充足，能够较为全面地阐述观点。";
+                score += 40;
+            }
+            
+            // 检查选择的植物在文中是否出现
+            const plantNames = {
+                lotus: "莲",
+                chrysanthemum: "菊",
+                peony: "牡丹"
+            };
+            const selectedPlantName = plantNames[gameState.stage3Progress.selectedPlant];
+            
+            if (content.includes(selectedPlantName)) {
+                feedback += " 很好地融入了所选植物意象。";
+                score += 30;
+            } else {
+                feedback += " 建议在文中更明确地融入所选植物意象。";
+                score += 10;
+            }
+            
+            // 检查选择的品格词在文中是否出现
+            let virtuesFound = 0;
+            gameState.stage3Progress.selectedVirtues.forEach(virtue => {
+                if (content.includes(virtue)) {
+                    virtuesFound++;
+                }
+            });
+            
+            if (virtuesFound > 0) {
+                feedback += ` 成功运用了${virtuesFound}个品格词汇。`;
+                score += virtuesFound * 10;
+            } else {
+                feedback += " 建议在文中更明确地体现所选品格词。";
+            }
+            
+            // 总评
+            feedback += " 总体评分：" + score + "分。 ";
+            
+            if (score >= 70) {
+                feedback += "这是一篇很好的托物言志之作，成功地表达了个人品格追求。";
+            } else if (score >= 50) {
+                feedback += "这是一篇不错的托物言志之作，基本达到了表达目的。";
+            } else {
+                feedback += "这是一篇初步的托物言志尝试，可以进一步深化植物象征的运用。";
+            }
+            
+            // 显示反馈
+            feedbackDiv.classList.remove('hidden');
+            feedbackContent.textContent = feedback;
+            
+            // 更新状态
+            gameState.stage3Progress.essayCompleted = true;
+            updateProgress();
+        }
+        
+        // 心镜映莲交互
+        function setupCharacterMirror() {
+            const sliders = [
+                document.getElementById('slider-worldly'),
+                document.getElementById('slider-passion'),
+                document.getElementById('slider-friendly'),
+                document.getElementById('slider-flexible'),
+                document.getElementById('slider-display')
+            ];
+            
+            // 初始化莲花
+            updateDynamicLotus();
+            
+            // 添加滑块事件
+            sliders.forEach(slider => {
+                slider.addEventListener('input', () => {
+                    updateDynamicLotus();
+                    updateCharacterAnalysis();
+                    
+                    // 更新状态
+                    gameState.stage3Progress.mirrorCompleted = true;
+                    updateProgress();
+                });
+            });
+        }
+        
+        // 更新动态莲花
+        function updateDynamicLotus() {
+            const worldly = parseInt(document.getElementById('slider-worldly').value);
+            const passion = parseInt(document.getElementById('slider-passion').value);
+            const friendly = parseInt(document.getElementById('slider-friendly').value);
+            const flexible = parseInt(document.getElementById('slider-flexible').value);
+            const display = parseInt(document.getElementById('slider-display').value);
+            
+            // 获取SVG元素
+            const svg = document.getElementById('dynamic-lotus');
+            
+            // 清空现有内容
+            svg.innerHTML = '';
+            
+            // 创建基础花心
+            const centerRadius = 8 + (worldly / 20); // 花心大小受入世程度影响
+            const centerColor = `hsl(${330 + passion/2}, ${60 + passion/3}%, ${70 - passion/5}%)`; // 花心颜色受热烈程度影响
+            
+            const centerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            centerCircle.setAttribute("cx", "100");
+            centerCircle.setAttribute("cy", "100");
+            centerCircle.setAttribute("r", centerRadius);
+            centerCircle.setAttribute("fill", centerColor);
+            svg.appendChild(centerCircle);
+            
+            // 创建花蕊
+            const stamenCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            stamenCircle.setAttribute("cx", "100");
+            stamenCircle.setAttribute("cy", "100");
+            stamenCircle.setAttribute("r", centerRadius/2);
+            stamenCircle.setAttribute("fill", "#FFD700");
+            svg.appendChild(stamenCircle);
+            
+            // 创建花瓣
+            const petalCount = 5 + Math.floor(friendly / 20); // 花瓣数量受亲和度影响
+            const petalSize = 35 - (flexible / 5); // 花瓣大小受柔和度影响
+            const petalSpread = 30 + (display / 2); // 花瓣展开程度受展现度影响
+            
+            for (let i = 0; i < petalCount; i++) {
+                const angle = (360 / petalCount) * i;
+                const petalPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                
+                // 计算花瓣路径
+                const rad = angle * Math.PI / 180;
+                const cpRad1 = (angle + 30) * Math.PI / 180;
+                const cpRad2 = (angle - 30) * Math.PI / 180;
+                
+                const startX = 100;
+                const startY = 100;
+                const endX = 100 + petalSpread * Math.cos(rad);
+                const endY = 100 + petalSpread * Math.sin(rad);
+                const cpX1 = 100 + petalSize * Math.cos(cpRad1);
+                const cpY1 = 100 + petalSize * Math.sin(cpRad1);
+                const cpX2 = 100 + petalSize * Math.cos(cpRad2);
+                const cpY2 = 100 + petalSize * Math.sin(cpRad2);
+                
+                const petalColor = `hsl(${330 + passion/3}, ${60 + passion/4}%, ${75 - passion/10}%)`;
+                
+                petalPath.setAttribute("d", `M${startX},${startY} Q${cpX1},${cpY1} ${endX},${endY} Q${cpX2},${cpY2} ${startX},${startY}`);
+                petalPath.setAttribute("fill", petalColor);
+                petalPath.setAttribute("transform", `rotate(${angle}, 100, 100)`);
+                
+                svg.appendChild(petalPath);
+            }
+            
+            // 添加茎
+            const stem = document.createElementNS("http://www.w3.org/2000/svg", "line");
+            stem.setAttribute("x1", "100");
+            stem.setAttribute("y1", "100");
+            stem.setAttribute("x2", "100");
+            stem.setAttribute("y2", "180");
+            stem.setAttribute("stroke", "green");
+            stem.setAttribute("stroke-width", "3");
+            svg.appendChild(stem);
+            
+            // 添加叶子
+            const leaf1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            leaf1.setAttribute("d", "M100,140 Q120,130 130,150 Q120,160 100,155 Z");
+            leaf1.setAttribute("fill", "green");
+            svg.appendChild(leaf1);
+            
+            const leaf2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            leaf2.setAttribute("d", "M100,160 Q80,150 70,170 Q80,180 100,175 Z");
+            leaf2.setAttribute("fill", "green");
+            svg.appendChild(leaf2);
+        }
+        
+        // 更新品格分析
+        function updateCharacterAnalysis() {
+            const worldly = parseInt(document.getElementById('slider-worldly').value);
+            const passion = parseInt(document.getElementById('slider-passion').value);
+            const friendly = parseInt(document.getElementById('slider-friendly').value);
+            const flexible = parseInt(document.getElementById('slider-flexible').value);
+            const display = parseInt(document.getElementById('slider-display').value);
+            
+            const analysisDiv = document.getElementById('character-analysis');
+            
+            // 基于滑块值生成分析文本
+            let analysis = "你心目中的君子形象：";
+            
+            // 入世-出世分析
+            if (worldly < 30) {
+                analysis += "偏向出世，淡泊名利，";
+            } else if (worldly > 70) {
+                analysis += "积极入世，关心社会，";
+            } else {
+                analysis += "出入世间，不偏不倚，";
+            }
+            
+            // 淡泊-热烈分析
+            if (passion < 30) {
+                analysis += "性情恬淡，";
+            } else if (passion > 70) {
+                analysis += "热情奔放，";
+            } else {
+                analysis += "温和有度，";
+            }
+            
+            // 清高-亲和分析
+            if (friendly < 30) {
+                analysis += "独善其身。";
+            } else if (friendly > 70) {
+                analysis += "平易近人。";
+            } else {
+                analysis += "谦和有礼。";
+            }
+            
+            // 刚直-柔和分析
+            if (flexible < 30) {
+                analysis += "为人刚直不阿，";
+            } else if (flexible > 70) {
+                analysis += "为人柔和包容，";
+            } else {
+                analysis += "刚柔并济，";
+            }
+            
+            // 隐藏-展现分析
+            if (display < 30) {
+                analysis += "不张扬己长。";
+            } else if (display > 70) {
+                analysis += "光明磊落。";
+            } else {
+                analysis += "适度展现自我。";
+            }
+            
+            analysisDiv.textContent = analysis;
+        }
+        
+        // 重置第三幕UI
+        function resetStage3UI() {
+            // 重置植物选择
+            document.querySelectorAll('.plant-option').forEach(option => {
+                option.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'ring-2', 'ring-primary');
+            });
+            
+            // 重置品格词选择
+            document.querySelectorAll('.virtue-tag').forEach(tag => {
+                tag.classList.remove('ring-2', 'ring-primary');
+            });
+            
+            // 重置表单内容
+            document.getElementById('essay-title').value = '';
+            document.getElementById('essay-content').value = '';
+            
+            // 隐藏反馈
+            document.getElementById('essay-feedback').classList.add('hidden');
+            
+            // 隐藏心镜映莲
+            document.getElementById('character-mirror').classList.add('hidden');
+            
+            // 重置滑块
+            document.getElementById('slider-worldly').value = 50;
+            document.getElementById('slider-passion').value = 30;
+            document.getElementById('slider-friendly').value = 40;
+            document.getElementById('slider-flexible').value = 60;
+            document.getElementById('slider-display').value = 50;
+        }
+
+        // 启动游戏
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
