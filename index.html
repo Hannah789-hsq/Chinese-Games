@@ -6,77 +6,48 @@
   <title>Chinese Games · 游戏合集</title>
   <meta name="description" content="多个 HTML5 小游戏入口，点击卡片即可开始游戏。">
   <style>
-    :root{
-      --bg:#0b1020; --card:#121832; --text:#e9ecf1; --muted:#a9b3c9;
-      --accent:#5ad2ff; --accent2:#8a7dff; --ring:rgba(90,210,255,.4);
-    }
+    :root{ --bg:#0b1020; --text:#e9ecf1; --muted:#a9b3c9; --ring:rgba(90,210,255,.4); }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{
-      margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      color:var(--text); background:radial-gradient(1200px 800px at 80% -10%,#1a2042 0%,#0b1020 60%), var(--bg);
-    }
-    header{
-      position:sticky; top:0; backdrop-filter:saturate(1.2) blur(10px);
+    body{ margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      color:var(--text); background:radial-gradient(1200px 800px at 80% -10%,#1a2042 0%,#0b1020 60%), #0b1020; }
+    header{ position:sticky; top:0; backdrop-filter:saturate(1.2) blur(10px);
       background:linear-gradient(180deg,rgba(11,16,32,.85),rgba(11,16,32,.55) 60%,transparent);
-      z-index:10; padding:14px 16px 8px; border-bottom:1px solid rgba(255,255,255,.06);
-    }
+      z-index:10; padding:14px 16px 8px; border-bottom:1px solid rgba(255,255,255,.06); }
     .wrap{max-width:1100px; margin:0 auto; padding:0 16px}
-    .top{
-      display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:space-between;
-    }
-    .brand{display:flex; align-items:center; gap:10px}
-    .logo{
-      width:34px; height:34px; border-radius:10px;
-      background: conic-gradient(from 210deg,var(--accent),var(--accent2),var(--accent));
-      box-shadow:0 0 0 3px rgba(255,255,255,.06) inset, 0 12px 30px rgba(90,210,255,.2);
-    }
+    .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:space-between; }
+    .brand{ display:flex; align-items:center; gap:10px }
+    .logo{ width:34px; height:34px; border-radius:10px;
+      background:conic-gradient(from 210deg,#5ad2ff,#8a7dff,#5ad2ff);
+      box-shadow:0 0 0 3px rgba(255,255,255,.06) inset, 0 12px 30px rgba(90,210,255,.2); }
     h1{font-size:18px; margin:0}
     .muted{color:var(--muted); font-size:13px}
-    .search{
-      flex:1; min-width:220px; display:flex; align-items:center; gap:8px;
+    .search{ flex:1; min-width:220px; display:flex; align-items:center; gap:8px;
       background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
-      border-radius:12px; padding:8px 12px;
-    }
-    .search input{
-      flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px;
-    }
+      border-radius:12px; padding:8px 12px; }
+    .search input{ flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px; }
     main{padding:18px 0 48px}
-    .grid{
-      display:grid; gap:14px;
-      grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-    }
-    .card{
-      display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:14px;
+    .grid{ display:grid; gap:14px; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); }
+    .card{ display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:14px;
       background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
       border:1px solid rgba(255,255,255,.08);
-      transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
-    }
-    .card:focus-within, .card:hover{
-      transform: translateY(-2px);
-      box-shadow:0 10px 24px rgba(0,0,0,.35), 0 0 0 4px var(--ring);
-      border-color: rgba(90,210,255,.45);
-    }
-    .thumb{
-      width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; display:block;
+      transition:transform .2s, box-shadow .2s, border-color .2s; }
+    .card:hover{ transform: translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.35), 0 0 0 4px var(--ring);
+      border-color: rgba(90,210,255,.45); }
+    .thumb{ width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; display:block;
       background:linear-gradient(135deg, rgba(90,210,255,.25), rgba(138,125,255,.25));
-      border:1px solid rgba(255,255,255,.06);
-    }
+      border:1px solid rgba(255,255,255,.06); }
     .thumb canvas{width:100%; height:100%; display:block}
     .title{font-weight:700; letter-spacing:.2px}
     .meta{display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:12px}
     .tags{display:flex; gap:6px; flex-wrap:wrap}
     .tag{padding:2px 8px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1)}
-    .go{
-      display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border-radius:10px;
+    .go{ display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border-radius:10px;
       color:#07121a; font-weight:700; text-decoration:none; justify-content:center;
-      background:linear-gradient(180deg,#63e1ff,#46b6ff);
-      border:1px solid rgba(0,0,0,.2); box-shadow:0 6px 14px rgba(70,182,255,.35);
-    }
+      background:linear-gradient(180deg,#63e1ff,#46b6ff); border:1px solid rgba(0,0,0,.2);
+      box-shadow:0 6px 14px rgba(70,182,255,.35); }
     footer{color:var(--muted); font-size:12px; text-align:center; padding:28px 0}
-    @media (max-width:420px){
-      .muted{display:none}
-    }
+    @media (max-width:420px){ .muted{display:none} }
   </style>
 </head>
 <body>
@@ -92,7 +63,7 @@
         </div>
         <label class="search" aria-label="搜索游戏">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="#a9b3c9" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-          <input id="q" type="search" placeholder="搜索：拼音闯关 / 部首挑战 / 成语接龙 …">
+          <input id="q" type="search" placeholder="搜索：诗词表情 / 莲花 …">
         </label>
       </div>
     </div>
@@ -107,10 +78,10 @@
   </footer>
 
   <script>
+    // 用你实际存在的两个目录
     const games = [
-      { id:"snake", name:"贪吃蛇", desc:"吃到食物变长，小心不要撞到自己。", url:"./games/snake/", tags:["街机","休闲"] },
-      { id:"tetris", name:"俄罗斯方块", desc:"旋转方块，消除行，挑战高分。", url:"./games/tetris/", tags:["益智","经典"] }
-      // 继续添加：{ id:"xxx", name:"游戏名", desc:"简介", url:"./games/xxx/", tags:["标签1","标签2"] }
+      { id:"poememoji", name:"诗词表情（PoemEmoji）", desc:"用表情解锁诗词意象。", url:"./games/poememoji/", tags:["语文","益智"] },
+      { id:"lotus", name:"莲花（Lotus）", desc:"点击莲花开始游戏。", url:"./games/lotus/", tags:["休闲","益智"] }
     ];
 
     const grid = document.getElementById('grid');
@@ -135,7 +106,7 @@
         `;
         grid.appendChild(card);
 
-        // 无外链的程序化封面
+        // 程序化封面
         const canvas = card.querySelector('canvas');
         const ctx = canvas.getContext('2d');
         const w = canvas.width = 800, h = canvas.height = 450;
@@ -151,11 +122,12 @@
           ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
         }
         ctx.fillStyle = 'rgba(255,255,255,.9)';
-        ctx.font = '700 48px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
+        ctx.font = '700 44px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(g.name, w/2, h/2 + 16);
+        ctx.fillText(g.name, w/2, h/2 + 14);
       });
     }
+
     function filter(){
       const kw = q.value.trim().toLowerCase();
       if(!kw) return render(games);
@@ -171,15 +143,3 @@
   </script>
 </body>
 </html>
-<li class="game">
-  <a href="./games/poememoji/">进入：诗词表情 PoemEmoji</a>
-</li>
-<li class="game">
-  <a href="./games/lotus/">进入：莲花 Lotus</a>
-</li>
-<li class="game">
-  <a href="./games/poememoji/poememoji.html">进入：诗词意象 PoemEmoji</a>
-</li>
-<li class="game">
-  <a href="./games/lotus/lotus.html">进入：莲花 Lotus</a>
-</li>
