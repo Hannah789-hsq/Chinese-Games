@@ -3,143 +3,693 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <title>Chinese Games · 游戏合集</title>
-  <meta name="description" content="多个 HTML5 小游戏入口，点击卡片即可开始游戏。">
+  <title>Chinese Games · 游戏大厅</title>
+  <meta name="description" content="Beyond the Game · Where play refines mind. 游以砺思，学以致远。学习类与测试类的 7 个轻量互动小游戏。">
+  <meta name="color-scheme" content="light">
   <style>
-    :root{ --bg:#0b1020; --text:#e9ecf1; --muted:#a9b3c9; --ring:rgba(90,210,255,.4); }
+    :root{
+      --bg:#f7fafc;
+      --ink:#0e1420;
+      --muted:#5f6b82;
+      --line:#e6edf5;
+      --ring:rgba(46,144,255,.28);
+      --accent:#2e90ff;
+      --accent2:#7a5cff;
+      --badge:#ff4d4d;
+      --recent:#10b981;
+    }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{ margin:0; font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
-      color:var(--text); background:radial-gradient(1200px 800px at 80% -10%,#1a2042 0%,#0b1020 60%), #0b1020; }
-    header{ position:sticky; top:0; backdrop-filter:saturate(1.2) blur(10px);
-      background:linear-gradient(180deg,rgba(11,16,32,.85),rgba(11,16,32,.55) 60%,transparent);
-      z-index:10; padding:14px 16px 8px; border-bottom:1px solid rgba(255,255,255,.06); }
+    body{
+      margin:0; color:var(--ink);
+      background:
+        radial-gradient(1200px 600px at 80% -10%, #e8efff 0%, transparent 60%),
+        radial-gradient(1000px 600px at -10% 10%, #f0f7ff 0%, transparent 60%),
+        #f7fafc;
+      font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,'Noto Sans SC','PingFang SC','Hiragino Sans GB',sans-serif;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+    a{color:inherit; text-decoration:none}
+    /* Header */
+    .header{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter:saturate(1.2) blur(8px);
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.6) 60%, transparent);
+      border-bottom:1px solid var(--line);
+    }
     .wrap{max-width:1100px; margin:0 auto; padding:0 16px}
-    .top{ display:flex; align-items:center; gap:12px; flex-wrap:wrap; justify-content:space-between; }
-    .brand{ display:flex; align-items:center; gap:10px }
-    .logo{ width:34px; height:34px; border-radius:10px;
-      background:conic-gradient(from 210deg,#5ad2ff,#8a7dff,#5ad2ff);
-      box-shadow:0 0 0 3px rgba(255,255,255,.06) inset, 0 12px 30px rgba(90,210,255,.2); }
-    h1{font-size:18px; margin:0}
-    .muted{color:var(--muted); font-size:13px}
-    .search{ flex:1; min-width:220px; display:flex; align-items:center; gap:8px;
-      background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.08);
-      border-radius:12px; padding:8px 12px; }
-    .search input{ flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px; }
-    main{padding:18px 0 48px}
-    .grid{ display:grid; gap:14px; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); }
-    .card{ display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:14px;
-      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid rgba(255,255,255,.08);
-      transition:transform .2s, box-shadow .2s, border-color .2s; }
-    .card:hover{ transform: translateY(-2px); box-shadow:0 10px 24px rgba(0,0,0,.35), 0 0 0 4px var(--ring);
-      border-color: rgba(90,210,255,.45); }
-    .thumb{ width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; display:block;
-      background:linear-gradient(135deg, rgba(90,210,255,.25), rgba(138,125,255,.25));
-      border:1px solid rgba(255,255,255,.06); }
+    .nav{
+      display:flex; align-items:center; gap:12px; padding:14px 0; flex-wrap:wrap; justify-content:space-between;
+    }
+    .brand{display:flex; align-items:center; gap:10px}
+    .logo{
+      width:34px; height:34px; border-radius:10px;
+      background:conic-gradient(from 210deg, var(--accent), var(--accent2), var(--accent));
+      box-shadow:0 0 0 3px rgba(46,144,255,.08) inset, 0 8px 18px rgba(46,144,255,.25);
+    }
+    .title{margin:0; font-weight:800; letter-spacing:.2px; font-size:18px}
+    .sub{color:var(--muted); font-size:13px; margin-top:2px}
+    .tools{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+    .pills{
+      display:flex; gap:8px; background:#f2f6fb; border:1px solid var(--line); padding:5px; border-radius:999px;
+    }
+    .pill{
+      appearance:none; border:0; background:transparent; padding:7px 12px; border-radius:999px; cursor:pointer;
+      font-weight:700; color:#3d4b63;
+    }
+    .pill.active{background:#fff; color:#0d1b37; box-shadow:0 1px 0 rgba(13,27,55,.05)}
+    .search{
+      display:flex; align-items:center; gap:8px; padding:8px 12px; min-width:220px;
+      background:#fff; border:1px solid var(--line); border-radius:12px;
+    }
+    .search input{flex:1; border:0; outline:0; font-size:14px; color:#0d1b37; background:transparent}
+
+    /* Hero */
+    .hero{padding:28px 0 8px}
+    .hero .box{
+      background:linear-gradient(180deg,#ffffff, #f7fbff);
+      border:1px solid var(--line); border-radius:16px; padding:22px 18px;
+      display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:space-between;
+      overflow:hidden; position:relative;
+    }
+    .swoosh{
+      position:absolute; inset:auto -80px -80px auto; width:240px; height:240px; border-radius:50%;
+      background:radial-gradient(closest-side, rgba(46,144,255,.18), transparent 70%);
+      filter:blur(6px);
+      animation:float 6s ease-in-out infinite;
+    }
+    @keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .h1{margin:0; font-size:28px; font-weight:900; letter-spacing:.2px}
+    .lead{margin:6px 0 0; color:#425275}
+    .pair{margin:2px 0 0; color:#5a6a8b; font-size:14px}
+    .cta{display:flex; gap:10px; flex-wrap:wrap}
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:12px; border:1px solid rgba(0,0,0,.1);
+      background:linear-gradient(180deg,#5ab2ff,#2e90ff); color:#fff; font-weight:800;
+      box-shadow:0 8px 18px rgba(46,144,255,.25);
+    }
+    .btn.secondary{background:linear-gradient(180deg,#eaf3ff,#dce9ff); color:#0d1b37; border-color:var(--line); box-shadow:none; font-weight:700}
+    .btn:active{transform:translateY(1px)}
+
+    /* Sections */
+    section{padding:14px 0 20px}
+    .sec-head{display:flex; align-items:flex-end; justify-content:space-between; margin:0 0 10px}
+    .sec-title{font-size:18px; font-weight:900; margin:0}
+    .grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}
+
+    /* Card */
+    .card{
+      position:relative; display:flex; flex-direction:column; gap:10px; padding:14px; border-radius:16px;
+      background:linear-gradient(180deg, #fff, #f9fbff); border:1px solid var(--line);
+      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    }
+    .card:hover{ transform:translateY(-2px); box-shadow:0 10px 24px rgba(13,27,55,.08), 0 0 0 4px var(--ring); border-color:#cfe2ff }
+    .thumb{ width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; display:block; background:#eef5ff; border:1px solid var(--line) }
     .thumb canvas{width:100%; height:100%; display:block}
-    .title{font-weight:700; letter-spacing:.2px}
-    .meta{display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:12px}
+    .name{font-weight:800; letter-spacing:.2px}
+    .desc{color:#4a5976; font-size:14px}
+    .meta{display:flex; align-items:center; justify-content:space-between}
     .tags{display:flex; gap:6px; flex-wrap:wrap}
-    .tag{padding:2px 8px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1)}
-    .go{ display:inline-flex; align-items:center; gap:8px; padding:9px 12px; border-radius:10px;
-      color:#07121a; font-weight:700; text-decoration:none; justify-content:center;
-      background:linear-gradient(180deg,#63e1ff,#46b6ff); border:1px solid rgba(0,0,0,.2);
-      box-shadow:0 6px 14px rgba(70,182,255,.35); }
-    footer{color:var(--muted); font-size:12px; text-align:center; padding:28px 0}
-    @media (max-width:420px){ .muted{display:none} }
+    .tag{font-size:12px; padding:2px 8px; border-radius:999px; background:#f0f6ff; border:1px solid var(--line); color:#375078}
+    .go{display:inline-flex; align-items:center; gap:6px; padding:8px 10px; border-radius:10px; font-weight:800;
+      background:#fff; border:1px solid var(--line)}
+    .go:hover{box-shadow:0 4px 10px rgba(13,27,55,.06)}
+
+    /* Badges */
+    .badge{
+      position:absolute; top:10px; left:10px; font-size:12px; padding:3px 7px; border-radius:999px; color:#fff; font-weight:800;
+      background:linear-gradient(180deg,var(--badge),#ff2f2f); box-shadow:0 6px 14px rgba(255,77,77,.28); border:1px solid rgba(0,0,0,.08)
+    }
+    .badge.recent{right:10px; left:auto; background:linear-gradient(180deg,#34d399,var(--recent))}
+    .badge.pulse{animation:pulse 1.8s ease-in-out infinite}
+    @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+    .empty{padding:20px; border:1px dashed var(--line); border-radius:12px; color:#546180; text-align:center; background:#fff}
+    footer{color:#6b7790; font-size:12px; text-align:center; padding:26px 0}
+    @media (max-width:460px){ .search{min-width:0; flex:1} .lead{font-size:14px} }
+    .highlight{animation:hi 1.2s ease}
+    @keyframes hi{from{box-shadow:0 0 0 0 rgba(46,144,255,.0)} 50%{box-shadow:0 0 0 10px rgba(46,144,255,.18)} to{box-shadow:0 0 0 0 rgba(46,144,255,.0)}}
   </style>
 </head>
 <body>
-  <header>
+  <!-- Header -->
+  <div class="header">
     <div class="wrap">
-      <div class="top">
+      <div class="nav">
         <div class="brand">
           <div class="logo" aria-hidden="true"></div>
           <div>
-            <h1>Chinese Games · 游戏合集</h1>
-            <div class="muted">点击卡片即可进入游戏 · 支持手机和电脑</div>
+            <p class="title" style="margin:0">Chinese Games · 游戏大厅</p>
+            <div class="sub">Beyond the Game — Where play refines mind.</div>
           </div>
         </div>
-        <label class="search" aria-label="搜索游戏">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#a9b3c9" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-          <input id="q" type="search" placeholder="搜索：诗词表情 / 莲花 …">
-        </label>
+        <div class="tools">
+          <div class="pills" role="tablist" aria-label="分组切换">
+            <button class="pill active" data-jump="#learn" role="tab" aria-selected="true">学习类</button>
+            <button class="pill" data-jump="#test" role="tab" aria-selected="false">测试类</button>
+          </div>
+          <label class="search" aria-label="搜索游戏">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#7b89a6" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79L20 21.5 21.5 20 15.5 14zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            <input id="q" type="search" placeholder="搜索：名称 / 简介 / 标签">
+          </label>
+        </div>
       </div>
     </div>
-  </header>
+  </div>
 
-  <main class="wrap">
-    <section class="grid" id="grid" aria-live="polite"></section>
-  </main>
+  <!-- Hero -->
+  <div class="wrap hero">
+    <div class="box">
+      <div>
+        <h1 class="h1">Beyond the Game</h1>
+        <p class="lead">Where play refines mind.</p>
+        <p class="pair">游以砺思，学以致远。</p>
+        <div class="cta" style="margin-top:10px">
+          <a class="btn" href="#learn">开始学习</a>
+          <a class="btn secondary" href="#test">立即自测</a>
+        </div>
+      </div>
+      <div class="swoosh" aria-hidden="true"></div>
+    </div>
+  </div>
+
+  <!-- Sections -->
+  <div class="wrap">
+    <section id="learn">
+      <div class="sec-head">
+        <h2 class="sec-title">学习类</h2>
+        <div class="sub">循序渐进 · 以玩促学</div>
+      </div>
+      <div id="grid-learn" class="grid" aria-live="polite"></div>
+      <div id="empty-learn" class="empty" hidden>未找到符合条件的学习类游戏。</div>
+    </section>
+
+    <section id="test">
+      <div class="sec-head">
+        <h2 class="sec-title">测试类</h2>
+        <div class="sub">快速测验 · 即刻反馈</div>
+      </div>
+      <div id="grid-test" class="grid" aria-live="polite"></div>
+      <div id="empty-test" class="empty" hidden>未找到符合条件的测试类游戏。</div>
+    </section>
+  </div>
 
   <footer>
-    © <span id="y"></span> Chinese Games · GitHub Pages
+    © <span id="year"></span> Chinese Games · GitHub Pages
   </footer>
 
   <script>
-    // 用你实际存在的两个目录
-    const games = [
-      { id:"poememoji", name:"诗词表情（PoemEmoji）", desc:"用表情解锁诗词意象。", url:"./games/poememoji/", tags:["语文","益智"] },
-      { id:"lotus", name:"莲花（Lotus）", desc:"点击莲花开始游戏。", url:"./games/lotus/", tags:["休闲","益智"] }
+    // 数据配置（含分组与标签、角标）
+    const GAMES = [
+      // 学习类
+      {
+        id:'loushi', group:'learn',
+        name:'陋室雅集', desc:'陋室铭，古人聊天。',
+        url:'./games/loushi/',
+        tags:['古文','对话式','闯关','品读'],
+        badges:['NEW'] // 新上线
+      },
+      {
+        id:'mulan', group:'learn',
+        name:'木兰从军记', desc:'跟着木兰闯关，体会从军心路历程。',
+        url:'./games/mulan/',
+        tags:['史诗','节奏感','填空','沉浸']
+      },
+      {
+        id:'poememoji', group:'learn',
+        name:'意Emoji', desc:'用表情解读诗句意象，轻松记忆典故。',
+        url:'./games/poememoji/',
+        tags:['诗词意象','表情化','联想记忆']
+      },
+      {
+        id:'silianshuo', group:'learn',
+        name:'爱莲说', desc:'复习巩固、托物言志写作',
+        url:'./games/silianshuo/',
+        tags:['经典名篇','聚类归纳','词汇关联']
+      },
+
+      // 测试类
+      {
+        id:'typespark', group:'test',
+        name:'TypeSpark', desc:'MBTI+九型人格测试。',
+        url:'./games/typespark/',
+        tags:['人格类型','MBTI','九型','破冰']
+      },
+      {
+        id:'literaturemaster', group:'test',
+        name:'文学大师', desc:'你是哪位文学大师？',
+        url:'./games/literaturemaster/',
+        tags:['文学常识','快速测验','人物匹配']
+      },
+      {
+        id:'lotus', group:'test',
+        name:'草木有本心', desc:'你是哪种传统植物？',
+        url:'./games/lotus/',
+        tags:['植物性格','意象象征','趣味匹配']
+      }
     ];
 
-    const grid = document.getElementById('grid');
-    const q = document.getElementById('q');
-    document.getElementById('y').textContent = new Date().getFullYear();
+    const $ = s => document.querySelector(s);
+    const grids = { learn: $('#grid-learn'), test: $('#grid-test') };
+    const empties = { learn: $('#empty-learn'), test: $('#empty-test') };
+    const q = $('#q');
+    document.getElementById('year').textContent = new Date().getFullYear();
 
-    function render(list){
-      grid.innerHTML = "";
-      list.forEach(g=>{
-        const card = document.createElement('article');
-        card.className = 'card';
-        card.innerHTML = `
-          <a class="thumb" href="${g.url}" aria-label="打开 ${g.name}">
-            <canvas aria-hidden="true"></canvas>
-          </a>
-          <div class="title">${g.name}</div>
-          <div class="muted">${g.desc}</div>
-          <div class="meta">
-            <div class="tags">${g.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-            <a class="go" href="${g.url}">开始</a>
-          </div>
-        `;
-        grid.appendChild(card);
-
-        // 程序化封面
-        const canvas = card.querySelector('canvas');
-        const ctx = canvas.getContext('2d');
-        const w = canvas.width = 800, h = canvas.height = 450;
-        const g1 = ctx.createLinearGradient(0,0,w,h);
-        g1.addColorStop(0, '#1b2648'); g1.addColorStop(1, '#0c1228');
-        ctx.fillStyle = g1; ctx.fillRect(0,0,w,h);
-        const seed = [...g.id].reduce((a,c)=>a + c.charCodeAt(0), 0);
-        function rnd(n){ return Math.abs(Math.sin(n*997+seed*11)); }
-        for(let i=0;i<58;i++){
-          const x = rnd(i*1.31)*w, y = rnd(i*2.07)*h, r = 6 + rnd(i*3.19)*24;
-          const hue = 190 + rnd(i*4.73)*120;
-          ctx.fillStyle = `hsla(${hue},85%,60%,.22)`;
-          ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-        }
-        ctx.fillStyle = 'rgba(255,255,255,.9)';
-        ctx.font = '700 44px system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(g.name, w/2, h/2 + 14);
-      });
+    // 最近游玩
+    const LS_KEY = 'cg_recent';
+    const MAX_RECENT = 6;
+    function getRecentIds(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]')}catch{return[]} }
+    function touchRecent(id){
+      try{
+        const list = getRecentIds().filter(x=>x!==id);
+        list.unshift(id);
+        localStorage.setItem(LS_KEY, JSON.stringify(list.slice(0,MAX_RECENT)));
+      }catch{}
     }
 
+    // 渲染卡片
+    function render(list){
+      ['learn','test'].forEach(k => { grids[k].innerHTML = ''; empties[k].hidden = true; });
+      const recent = getRecentIds();
+
+      list.forEach(g => {
+        const card = document.createElement('article');
+        card.className = 'card';
+
+        // 角标
+        if ((g.badges||[]).includes('NEW')) {
+          const b = document.createElement('div');
+          b.className = 'badge pulse'; b.textContent = 'NEW'; card.appendChild(b);
+        }
+        if (recent.includes(g.id)) {
+          const br = document.createElement('div');
+          br.className = 'badge recent'; br.textContent = '最近游玩';
+          br.style.left = 'auto'; br.style.right = '10px';
+          card.appendChild(br);
+        }
+
+        // 内容
+        card.innerHTML += `
+          <a class="thumb" href="${g.url}" data-id="${g.id}" aria-label="打开 ${g.name}">
+            <canvas aria-hidden="true"></canvas>
+          </a>
+          <div class="name">${g.name}</div>
+          <div class="desc">${g.desc}</div>
+          <div class="meta">
+            <div class="tags">${(g.tags||[]).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+            <a class="go" href="${g.url}" data-id="${g.id}">开始</a>
+          </div>
+        `;
+
+        grids[g.group].appendChild(card);
+
+        // 绘制主题封面与动画控制
+        const canvas = card.querySelector('canvas');
+
+        // 占位控制器，避免“Cannot access 'anim' before initialization”
+        let anim = { start(){}, stop(){} };
+
+        // 悬停启停微动效（桌面），移动端保持静态
+        const thumbEl = card.querySelector('.thumb');
+        thumbEl.addEventListener('mouseenter', ()=>{ anim && anim.start && anim.start(); });
+        thumbEl.addEventListener('mouseleave', ()=>{ anim && anim.stop && anim.stop(); });
+
+        // 现在绘制并接管控制器
+        anim = drawCover(canvas, g.id) || anim;
+
+        // 记录最近游玩
+        card.querySelectorAll('[data-id]').forEach(a=>{
+          a.addEventListener('click', ()=>touchRecent(g.id));
+        });
+      });
+
+      ['learn','test'].forEach(k => { if(!grids[k].children.length) empties[k].hidden = false; });
+    }
+
+    // 搜索
     function filter(){
-      const kw = q.value.trim().toLowerCase();
-      if(!kw) return render(games);
-      const list = games.filter(g =>
-        g.name.toLowerCase().includes(kw) ||
-        g.desc.toLowerCase().includes(kw) ||
-        g.tags.join(',').toLowerCase().includes(kw)
-      );
+      const kw = (q.value||'').trim().toLowerCase();
+      if(!kw) return render(GAMES);
+      const list = GAMES.filter(g => {
+        const hay = [g.name,g.desc,(g.tags||[]).join(',')].join(' ').toLowerCase();
+        return hay.includes(kw);
+      });
       render(list);
     }
     q.addEventListener('input', filter);
-    render(games);
+
+    // 分组 pill
+    document.querySelectorAll('.pill').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.pill').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        const id = btn.getAttribute('data-jump');
+        const el = document.querySelector(id);
+        if(el){ el.scrollIntoView({behavior:'smooth', block:'start'}); setTimeout(()=>el.classList.add('highlight'), 100); setTimeout(()=>el.classList.remove('highlight'),1200); }
+      });
+    });
+
+    // ============ 主题封面绘制（Canvas） ============
+    function makeCtx(canvas){
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      const w = 800, h = 450;
+      canvas.width = w * dpr; canvas.height = h * dpr;
+      canvas.style.width = '100%'; canvas.style.height = '100%';
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      return {ctx,w,h};
+    }
+    function r(seed){ return n => Math.abs(Math.sin(n*991+seed*17)); }
+
+    // 统一的 emoji 字典（可按需调整）
+    const EMOJI = {
+      loushi: '📜',
+      mulan: '🏹',
+      poememoji: '😊',
+      silianshuo: '🪷',
+      typespark: '⌨️',
+      literaturemaster: '🪶',
+      lotus: '🌿',
+      generic: '🎮'
+    };
+
+    function drawCover(cvs,id){
+      const map = {
+        loushi: drawLoushi,
+        mulan: drawMulan,
+        poememoji: drawPoememoji,
+        silianshuo: drawAilian,
+        typespark: drawTypeSpark,
+        literaturemaster: drawLiterature,
+        lotus: drawLotus
+      };
+      const fn = map[id] || drawGeneric;
+      return fn(cvs, EMOJI[id] || EMOJI.generic);
+    }
+
+    // 1) 陋室雅集：宣纸纹理 + 水墨 + 碎金（中心显示 📜）
+    function drawLoushi(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      const seed = 1.31; const rnd = r(seed);
+
+      function base(){
+        const g = ctx.createLinearGradient(0,0,w,h);
+        g.addColorStop(0,'#ffffff'); g.addColorStop(1,'#f7fbff');
+        ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = 'rgba(0,0,0,.03)';
+        for(let i=0;i<80;i++){
+          const x = rnd(i)*w, y = rnd(i+20)*h, r0 = 0.5 + rnd(i+40)*1.2;
+          ctx.beginPath(); ctx.arc(x,y,r0,0,Math.PI*2); ctx.fill();
+        }
+        // 竖向章纹
+        ctx.strokeStyle = 'rgba(180,60,60,.15)'; ctx.lineWidth = 2;
+        for(let i=0;i<2;i++){ ctx.beginPath(); ctx.moveTo(30+i*6, 20); ctx.lineTo(30+i*6, h-20); ctx.stroke(); }
+        // 水墨晕染
+        for(let i=0;i<6;i++){
+          const x = rnd(i+2)*w, y = rnd(i+4)*h, r1 = 40 + rnd(i+6)*80;
+          const ink = ctx.createRadialGradient(x,y,10,x,y,r1);
+          ink.addColorStop(0,'rgba(20,24,40,.12)');
+          ink.addColorStop(1,'rgba(20,24,40,0)');
+          ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(x,y,r1,0,Math.PI*2); ctx.fill();
+        }
+        // 碎金点
+        for(let i=0;i<90;i++){
+          ctx.fillStyle = `rgba(240,170,60,${0.3+0.4*rnd(i)})`;
+          ctx.fillRect(rnd(i+8)*w, rnd(i+12)*h, 1.5, 1.5);
+        }
+        // Emoji
+        ctx.fillStyle = '#0d1b37';
+        ctx.textAlign='center';
+        ctx.font='700 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+        ctx.fillText(emoji, w/2, h/2+24);
+      }
+      base();
+
+      // 轻微墨波动
+      let raf, t=0, running=false;
+      function step(){
+        raf = requestAnimationFrame(step);
+        t+=0.02; if(t>Math.PI*1000) t=0;
+        // 叠加一层呼吸墨晕
+        const x = w*0.72, y = h*0.38, r1 = 70 + Math.sin(t)*8;
+        ctx.save();
+        ctx.globalCompositeOperation='multiply';
+        const ink = ctx.createRadialGradient(x,y,10,x,y,r1);
+        ink.addColorStop(0,'rgba(20,24,40,.10)');
+        ink.addColorStop(1,'rgba(20,24,40,0)');
+        ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(x,y,r1,0,Math.PI*2); ctx.fill();
+        ctx.restore();
+      }
+      return {
+        start(){ if(!running){ running=true; step(); } },
+        stop(){ running=false; cancelAnimationFrame(raf); base(); }
+      };
+    }
+
+    // 2) 木兰从军记：旌旗条带 + 金色粒子（显示 🏹）
+    function drawMulan(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      function base(){
+        const bg = ctx.createLinearGradient(0,0,w,h);
+        bg.addColorStop(0,'#fff7f7'); bg.addColorStop(1,'#ffecec');
+        ctx.fillStyle = bg; ctx.fillRect(0,0,w,h);
+        // 斜向旗带
+        for(let i=0;i<6;i++){
+          const y = h*(0.15+i*0.12);
+          const grad = ctx.createLinearGradient(0,y-40,w,y+40);
+          grad.addColorStop(0,'rgba(220,40,60,.10)');
+          grad.addColorStop(0.5,'rgba(220,40,60,.18)');
+          grad.addColorStop(1,'rgba(220,40,60,0)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.moveTo(-50,y-30); ctx.lineTo(w+50,y+10); ctx.lineTo(w+50,y+40); ctx.lineTo(-50,y); ctx.closePath();
+          ctx.fill();
+        }
+        // 粒子
+        for(let i=0;i<90;i++){
+          const x = (i*73)%w, y = (i*37)%h, r = 0.8 + (i%5)*0.5;
+          ctx.fillStyle = 'rgba(240,180,60,.5)';
+          ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+        }
+        // Emoji
+        ctx.fillStyle = '#0d1b37';
+        ctx.textAlign='center';
+        ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+        ctx.fillText(emoji, w/2, h/2+24);
+      }
+      base();
+      let raf, t=0, running=false;
+      function step(){
+        raf = requestAnimationFrame(step); t+=0.02; base();
+        // 叠加微风波形高亮
+        ctx.globalCompositeOperation='lighter';
+        ctx.strokeStyle='rgba(255,120,120,.25)'; ctx.lineWidth=2;
+        for(let i=0;i<3;i++){
+          ctx.beginPath();
+          for(let x=0;x<=w;x+=8){
+            const y = h*0.25 + i*40 + Math.sin((x*0.01)+t*2+i)*8;
+            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          }
+          ctx.stroke();
+        }
+        ctx.globalCompositeOperation='source-over';
+      }
+      return { start(){ if(!running){running=true; step();} }, stop(){ running=false; cancelAnimationFrame(raf); base(); } };
+    }
+
+    // 3) 意Emoji：彩泡 + 轮廓光（显示 😊）
+    function drawPoememoji(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      const bubbles = Array.from({length:38}, (_,i)=>({
+        x: (i*67)%w, y: (i*91)%h, r: 10 + (i%7)*8, s: (i%5)*0.004 + 0.008
+      }));
+      function base(){
+        const bg = ctx.createLinearGradient(0,0,w,h);
+        bg.addColorStop(0,'#eef8ff'); bg.addColorStop(1,'#f7f4ff');
+        ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+      }
+      function paint(t=0){
+        base();
+        bubbles.forEach((b,i)=>{
+          const y = (b.y + Math.sin(t*b.s + i)*6 + h) % h;
+          const x = (b.x + Math.cos(t*b.s*0.8 + i)*6 + w) % w;
+          const g = ctx.createRadialGradient(x,y,1,x,y,b.r);
+          g.addColorStop(0,'rgba(120,170,255,.35)');
+          g.addColorStop(1,'rgba(160,120,255,.25)');
+          ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,b.r,0,Math.PI*2); ctx.fill();
+          ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=1;
+          ctx.beginPath(); ctx.arc(x-b.r*0.3,y-b.r*0.3,b.r*0.9,0,Math.PI*2); ctx.stroke();
+        });
+        ctx.fillStyle='#0d1b37'; ctx.textAlign='center';
+        ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+        ctx.fillText(emoji, w/2, h/2+24);
+      }
+      paint();
+      let raf, t=0, running=false;
+      function step(){ raf=requestAnimationFrame(step); t+=1; paint(t); }
+      return { start(){ if(!running){running=true; step();} }, stop(){ running=false; cancelAnimationFrame(raf); paint(); } };
+    }
+
+    // 4) 爱莲说：水波 + 莲瓣光斑（显示 🪷）
+    function drawAilian(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      function base(){
+        const bg = ctx.createLinearGradient(0,0,0,h);
+        bg.addColorStop(0,'#eafff3'); bg.addColorStop(1,'#f3fff9');
+        ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+        // 水波底纹
+        ctx.strokeStyle='rgba(70,200,160,.15)'; ctx.lineWidth=2;
+        for(let i=0;i<6;i++){
+          ctx.beginPath();
+          for(let x=0;x<=w;x+=12){
+            const y = h*0.2 + i*40 + Math.sin(x*0.02+i)*6;
+            if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+          }
+          ctx.stroke();
+        }
+      }
+      function petal(cx,cy,r,rot,color){
+        ctx.save(); ctx.translate(cx,cy); ctx.rotate(rot);
+        const g = ctx.createRadialGradient(0,0,0,0,0,r);
+        g.addColorStop(0, color.replace('ALPHA','0.45'));
+        g.addColorStop(1, color.replace('ALPHA','0'));
+        ctx.fillStyle=g;
+        ctx.beginPath();
+        ctx.moveTo(0,0);
+        ctx.quadraticCurveTo(r*0.9,-r*0.4,0,-r);
+        ctx.quadraticCurveTo(-r*0.9,-r*0.4,0,0);
+        ctx.closePath(); ctx.fill(); ctx.restore();
+      }
+      function paint(t=0){
+        base();
+        for(let i=0;i<7;i++){
+          const a = i*(Math.PI*2/7) + Math.sin(t*0.02+i)*0.12;
+          petal(w*0.75, h*0.55, 60+ i*6, a, 'rgba(120,220,170,ALPHA)');
+        }
+        ctx.fillStyle='#0d1b37'; ctx.textAlign='center';
+        ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+        ctx.fillText(emoji, w/2, h/2+24);
+      }
+      paint();
+      let raf,t=0,running=false;
+      function step(){ raf=requestAnimationFrame(step); t+=1; paint(t); }
+      return { start(){ if(!running){running=true; step();} }, stop(){ running=false; cancelAnimationFrame(raf); paint(); } };
+    }
+
+    // 5) TypeSpark：霓虹网格 + 火花线（显示 ⌨️）
+    function drawTypeSpark(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      function base(){
+        const g = ctx.createLinearGradient(0,0,w,h);
+        g.addColorStop(0,'#e9f2ff'); g.addColorStop(1,'#efe9ff');
+        ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+        // 斜向网格
+        ctx.strokeStyle='rgba(90,140,255,.25)'; ctx.lineWidth=1;
+        for(let i=-h; i<w; i+=20){
+          ctx.beginPath(); ctx.moveTo(i,0); ctx.lineTo(i+h,h); ctx.stroke();
+        }
+      }
+      function spark(t){
+        ctx.globalCompositeOperation='lighter';
+        ctx.strokeStyle='rgba(80,120,255,.6)'; ctx.lineWidth=2;
+        ctx.beginPath();
+        for(let x=40;x<w-40;x+=8){
+          const y = h*0.65 + Math.sin((x+t)*0.06)*10;
+          if(x===40) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+        ctx.globalCompositeOperation='source-over';
+      }
+      function paint(t=0){ base(); spark(t); ctx.fillStyle='#0d1b37'; ctx.textAlign='center'; ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui'; ctx.fillText(emoji, w/2, h/2+24); }
+      paint();
+      let raf,t=0,running=false;
+      function step(){ raf=requestAnimationFrame(step); t+=2; paint(t); }
+      return { start(){ if(!running){running=true; step();} }, stop(){ running=false; cancelAnimationFrame(raf); paint(); } };
+    }
+
+    // 6) 文学大师：书页折线 + 金点 + 墨迹（显示 🪶）
+    function drawLiterature(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      function paint(){
+        const g = ctx.createLinearGradient(0,0,0,h);
+        g.addColorStop(0,'#fffefa'); g.addColorStop(1,'#fff6e9');
+        ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+        // 折页
+        ctx.fillStyle='rgba(220,200,160,.25)';
+        ctx.beginPath();
+        ctx.moveTo(w*0.15,h*0.15); ctx.lineTo(w*0.55,h*0.25); ctx.lineTo(w*0.85,h*0.15); ctx.lineTo(w*0.85,h*0.18); ctx.lineTo(w*0.55,h*0.28); ctx.lineTo(w*0.15,h*0.18); ctx.closePath(); ctx.fill();
+        // 墨迹
+        for(let i=0;i<3;i++){
+          const x=w*(0.2+0.25*i), y=h*0.68;
+          const ink=ctx.createRadialGradient(x,y,5,x,y,60);
+          ink.addColorStop(0,'rgba(30,30,40,.12)'); ink.addColorStop(1,'rgba(30,30,40,0)');
+          ctx.fillStyle=ink; ctx.beginPath(); ctx.arc(x,y,60,0,Math.PI*2); ctx.fill();
+        }
+        // 金点
+        for(let i=0;i<90;i++){
+          ctx.fillStyle=`rgba(230,180,90,${0.25+((i%5)/10)})`;
+          ctx.fillRect((i*53)%w, (i*79)%h, 1.5, 1.5);
+        }
+        // Emoji
+        ctx.fillStyle='#0d1b37'; ctx.textAlign='center';
+        ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+        ctx.fillText(emoji, w/2, h/2+24);
+      }
+      paint();
+      return { start(){}, stop(){} };
+    }
+
+    // 7) 草木有本心：体积光 + 花粉粒（显示 🌿）
+    function drawLotus(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      const pollen = Array.from({length:80}, (_,i)=>({x:(i*47)%w, y:(i*73)%h, r:1+((i%4)*0.6)}));
+      function base(){
+        const g = ctx.createLinearGradient(0,0,0,h);
+        g.addColorStop(0,'#effff4'); g.addColorStop(1,'#f2fff8');
+        ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
+        // 体积光柱
+        for(let i=0;i<4;i++){
+          const x = w*(0.2+0.18*i);
+          const lg = ctx.createRadialGradient(x,h*0.1,10,x,h*0.4,180);
+          lg.addColorStop(0,'rgba(120,220,160,.35)');
+          lg.addColorStop(1,'rgba(120,220,160,0)');
+          ctx.fillStyle=lg; ctx.beginPath(); ctx.arc(x,h*0.35,180,0,Math.PI*2); ctx.fill();
+        }
+      }
+      function paint(t=0){
+        base();
+        // 花粉漂浮
+        ctx.fillStyle='rgba(100,180,140,.45)';
+        pollen.forEach((p,i)=>{
+          const y = (p.y + Math.sin(t*0.02+i)*8 + h) % h;
+          const x = (p.x + Math.cos(t*0.015+i)*6 + w) % w;
+          ctx.beginPath(); ctx.arc(x,y,p.r,0,Math.PI*2); ctx.fill();
+        });
+        // Emoji
+        ctx.fillStyle='#0d1b37'; ctx.textAlign='center';
+        ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+        ctx.fillText(emoji, w/2, h/2+24);
+      }
+      paint();
+      let raf,t=0,running=false;
+      function step(){ raf=requestAnimationFrame(step); t+=1; paint(t); }
+      return { start(){ if(!running){running=true; step();} }, stop(){ running=false; cancelAnimationFrame(raf); paint(); } };
+    }
+
+    // 兜底（显示 🎮）
+    function drawGeneric(canvas, emoji){
+      const {ctx,w,h} = makeCtx(canvas);
+      const bg = ctx.createLinearGradient(0,0,w,h);
+      bg.addColorStop(0,'#eaf3ff'); bg.addColorStop(1,'#f7fbff');
+      ctx.fillStyle=bg; ctx.fillRect(0,0,w,h);
+      ctx.fillStyle='#0d1b37'; ctx.textAlign='center';
+      ctx.font='800 72px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui';
+      ctx.fillText(emoji, w/2, h/2+24);
+      return { start(){}, stop(){} };
+    }
+
+    // 初次渲染
+    render(GAMES);
   </script>
 </body>
 </html>
