@@ -331,6 +331,7 @@
     const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
 
     const painters = {
+      weijinresou: paintWeijinresou,
       loushi: paintLoushi,
       mulan: paintMulan,
       poememoji: paintPoememoji,
@@ -367,6 +368,143 @@
   function emoji(ctx,x,y,ch,size){
     ctx.font=`800 ${size}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",system-ui`;
     ctx.textAlign='center'; ctx.fillStyle='#eef6ff'; ctx.fillText(ch,x,y);
+  }
+
+  // 魏晋热搜封面：融合古典竹简与现代网络元素
+  function paintWeijinresou(ctx,w,h){
+    jellyBack(ctx,w,h);
+    
+    // 绘制背景竹简卷轴
+    bambooScrolls(ctx,w,h);
+    
+    // 绘制网络连接节点（体现"热搜"概念）
+    networkNodes(ctx,w,h);
+    
+    // 绘制古典文字装饰
+    classicCalligraphy(ctx,w,h);
+    
+    // 魏晋特色：清谈与雅集氛围
+    conversationBubbles(ctx,w,h);
+  }
+
+  function bambooScrolls(ctx,w,h){
+    // 主卷轴
+    const scrollW = w*0.7, scrollH = h*0.35;
+    const scrollX = w*0.15, scrollY = h*0.3;
+    
+    // 卷轴底色
+    ctx.fillStyle = '#f4e9c9'; 
+    roundedRect(ctx, scrollX, scrollY, scrollW, scrollH, 8, true, false);
+    
+    // 卷轴边缘装饰
+    ctx.fillStyle = '#d4c19e';
+    ctx.fillRect(scrollX, scrollY, scrollW, 8);
+    ctx.fillRect(scrollX, scrollY + scrollH - 8, scrollW, 8);
+    
+    // 竹简纹理线条
+    ctx.strokeStyle = 'rgba(180,160,120,0.6)';
+    ctx.lineWidth = 1;
+    for(let i = 0; i < 12; i++){
+      const x = scrollX + (scrollW / 12) * i;
+      ctx.beginPath();
+      ctx.moveTo(x, scrollY);
+      ctx.lineTo(x, scrollY + scrollH);
+      ctx.stroke();
+    }
+    
+    // 卷轴两端
+    ctx.fillStyle = '#8b6914';
+    ctx.beginPath();
+    ctx.arc(scrollX, scrollY + scrollH/2, 12, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(scrollX + scrollW, scrollY + scrollH/2, 12, 0, Math.PI*2);
+    ctx.fill();
+  }
+
+  function networkNodes(ctx,w,h){
+    // 热搜网络节点，体现现代感
+    const nodes = [
+      {x: w*0.2, y: h*0.15, r: 8},
+      {x: w*0.8, y: h*0.25, r: 6},
+      {x: w*0.1, y: h*0.7, r: 7},
+      {x: w*0.9, y: h*0.8, r: 5},
+      {x: w*0.5, y: h*0.1, r: 9},
+      {x: w*0.6, y: h*0.85, r: 6}
+    ];
+    
+    // 绘制连接线
+    ctx.strokeStyle = hexA(jelly.sky, 0.4);
+    ctx.lineWidth = 2;
+    for(let i = 0; i < nodes.length; i++){
+      for(let j = i + 1; j < nodes.length; j++){
+        if(Math.random() > 0.6) continue; // 随机连接
+        ctx.beginPath();
+        ctx.moveTo(nodes[i].x, nodes[i].y);
+        ctx.lineTo(nodes[j].x, nodes[j].y);
+        ctx.stroke();
+      }
+    }
+    
+    // 绘制节点
+    nodes.forEach(node => {
+      const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.r);
+      grad.addColorStop(0, hexA(jelly.sky, 0.8));
+      grad.addColorStop(1, hexA(jelly.sky, 0.3));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.r, 0, Math.PI*2);
+      ctx.fill();
+      
+      // 节点光晕
+      ctx.fillStyle = hexA(jelly.sky, 0.2);
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.r * 2, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
+  function classicCalligraphy(ctx,w,h){
+    // 古典书法元素装饰
+    ctx.fillStyle = hexA(jelly.amber, 0.7);
+    ctx.font = '24px "STKaiti","KaiTi","Noto Serif SC",serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('世说新語', w*0.5, h*0.5);
+    
+    // 小字装饰
+    ctx.font = '14px "STKaiti","KaiTi","Noto Serif SC",serif';
+    ctx.fillStyle = hexA(jelly.amber, 0.5);
+    ctx.fillText('清談雅集', w*0.5, h*0.58);
+  }
+
+  function conversationBubbles(ctx,w,h){
+    // 对话气泡，体现清谈文化
+    const bubbles = [
+      {x: w*0.25, y: h*0.75, w: 60, h: 25},
+      {x: w*0.75, y: h*0.65, w: 70, h: 30},
+      {x: w*0.45, y: h*0.8, w: 55, h: 28}
+    ];
+    
+    bubbles.forEach(bubble => {
+      // 气泡背景
+      ctx.fillStyle = hexA(jelly.violet, 0.3);
+      roundedRect(ctx, bubble.x - bubble.w/2, bubble.y - bubble.h/2, 
+                 bubble.w, bubble.h, 12, true, false);
+      
+      // 气泡边框
+      ctx.strokeStyle = hexA(jelly.violet, 0.6);
+      ctx.lineWidth = 1;
+      roundedRect(ctx, bubble.x - bubble.w/2, bubble.y - bubble.h/2, 
+                 bubble.w, bubble.h, 12, false, true);
+      
+      // 对话点装饰
+      for(let i = 0; i < 3; i++){
+        ctx.fillStyle = hexA(jelly.violet, 0.6);
+        ctx.beginPath();
+        ctx.arc(bubble.x - 10 + i*10, bubble.y, 2, 0, Math.PI*2);
+        ctx.fill();
+      }
+    });
   }
 
   // 具体封面
@@ -537,6 +675,12 @@
 
   // 动画器
   const animators = {
+    weijinresou(ctx,w,h,t){ 
+      // 网络节点闪烁动画
+      networkNodesAnimation(ctx,w,h,t);
+      // 金粉飘散效果
+      goldDust(ctx,w,h,0.2 + Math.sin(t*0.05)*0.1);
+    },
     loushi(ctx,w,h,t){ if(t%2) return; goldDust(ctx,w,h,0.25); },
     mulan(ctx,w,h,t){ wave(ctx, h*0.35, t, 'rgba(139,92,246,.7)'); },
     poememoji(ctx,w,h,t){ floatBubbles(ctx,w,h,t); },
@@ -545,6 +689,26 @@
     literaturemaster(ctx,w,h,t){ sparkleSweep(ctx,w,h,t); },
     lotus(ctx,w,h,t){ pollen(ctx,w,h,0.35,t); }
   };
+
+  function networkNodesAnimation(ctx,w,h,t){
+    const nodes = [
+      {x: w*0.2, y: h*0.15, r: 8},
+      {x: w*0.8, y: h*0.25, r: 6},
+      {x: w*0.5, y: h*0.1, r: 9}
+    ];
+    
+    nodes.forEach((node, i) => {
+      const pulse = Math.sin(t*0.1 + i*0.5) * 0.3 + 0.7;
+      const grad = ctx.createRadialGradient(node.x, node.y, 0, node.x, node.y, node.r * pulse);
+      grad.addColorStop(0, hexA(jelly.sky, 0.9 * pulse));
+      grad.addColorStop(1, hexA(jelly.sky, 0.1));
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, node.r * pulse, 0, Math.PI*2);
+      ctx.fill();
+    });
+  }
+
   function floatBubbles(ctx,w,h,t){
     for(let i=0;i<8;i++){
       const r=30+ (i%5)*10;
